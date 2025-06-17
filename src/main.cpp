@@ -19,14 +19,14 @@ int main(int ac, char ** av){
     RtAudioCaptureThread input(131);
     
     std::vector<double> freqs ;
-    for(int i = -80; i < 80; i+=1){
-        double n = 100;
+    for(int i = 0; i < 200; i+=1){
+        double n = 700;
         freqs.push_back(32768+i/n);
     }
 
     CorrelationBank bank;
     assert(input.getSampleRate() == 192000);
-    bank.init(input.getSampleRate()+0.35,freqs);
+    bank.init(input.getSampleRate() +0.3,freqs);
     
 
     

@@ -6,6 +6,31 @@
 
 #include <ResultSignal.h>
 
+
+#include <ctime>
+struct MeasureFrequency{
+    double last_sin;
+    uint64_t count_samples;
+    uint64_t count_periods;
+    double frequency;
+    MeasureFrequency():last_sin(0.0),count_samples(0), count_periods(0){}
+    void update(double sin){
+        if(last_sin < 0 && sin >= 0){
+            count_periods++;
+            frequency = getFrequency(192000);
+        }
+        last_sin = sin;
+        count_samples++;
+    }
+
+    double getFrequency(double samplerate){
+        return count_periods / (count_samples / samplerate);
+    }
+
+};
+
+
+
 class CorrelationBank {
 public:
     void init(double fs, const std::vector<double>& freqs)
@@ -16,6 +41,7 @@ public:
         realSums.assign(numFreqs_, 0.0);
         imagSums.assign(numFreqs_, 0.0);
         two_pi_f_over_fs.resize(numFreqs_);
+        measure_frequencies.resize(numFreqs_);
         currentFrame = 0;
         for (size_t i = 0; i < numFreqs_; ++i) {
             two_pi_f_over_fs[i] = 2.0 * M_PI * freqs[i] / fs_;
@@ -41,7 +67,8 @@ public:
             double freq = freqs_[i];
 
             for (size_t n = 0; n < input.size(); n++) {
-                double angle = two_pi_f_over_fs[i] * (currentFrame + n);
+                //double angle = two_pi_f_over_fs[i] * (currentFrame + n);
+                double angle = (currentFrame + n)* 2.0 * M_PI * freq / fs_; 
                 double sample = input[n];
                 
                 double s,c;
@@ -49,6 +76,7 @@ public:
                 sincos(angle,&s,&c);
                 realSums[i] += sample * c;
                 imagSums[i] += -sample * s; // conjugué
+                //measure_frequencies[i].update(s);
             }
         }
 
@@ -72,6 +100,7 @@ public:
 
                 realSums[i] += sample * c;
                 imagSums[i] += -sample * s; // conjugué
+                measure_frequencies[i].update(s);
             }
         }
 
@@ -109,10 +138,11 @@ public:
 
 private:
     double fs_;
-    int currentFrame;
+    u_int64_t currentFrame;
     size_t numFreqs_;
     std::vector<double> freqs_;
     std::vector<double> two_pi_f_over_fs;
     std::vector<double> realSums;
     std::vector<double> imagSums;
+    std::vector<MeasureFrequency> measure_frequencies;
 };

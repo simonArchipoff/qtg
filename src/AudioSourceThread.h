@@ -9,6 +9,12 @@
 
 #include <iostream>
 #include "concurrentqueue.h"
+
+
+
+
+
+
 class RtAudioCaptureThread {
 public:
     using Buffer = std::vector<float>;
@@ -137,9 +143,12 @@ private:
         
         if (status) std::cerr << "Stream underflow/overflow detected." << std::endl;
         if (!inputBuffer) return 0;
-        self->soundcarddrift.update(self->currentFrame);
+        
         self->currentFrame += nFrames;
-        std::cerr << self->soundcarddrift.getResult(self->sampleRate) << std::endl;
+
+            self->soundcarddrift.update(self->currentFrame);
+
+            std::cerr << self->soundcarddrift.getResult(self->sampleRate) << std::endl;
 
         BufferPtr buffer;
         if (!self->bufferPool.try_dequeue(buffer)) {
