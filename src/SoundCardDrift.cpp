@@ -6,13 +6,13 @@ const static uint64_t Giga = 1'000'000'000ull;
 void DriftEntry::init(uint64_t frame)
 {
     frame_init = frame;
-    clock_gettime(CLOCK_REALTIME, &init_ts);
+    clock_gettime(CLOCK_MONOTONIC, &init_ts);
 }
 
 void DriftEntry::update(unsigned long current_frame)
 {
     frame_now = current_frame;
-    clock_gettime(CLOCK_REALTIME, &now_ts);
+    clock_gettime(CLOCK_MONOTONIC, &now_ts);
 }
 bool DriftEntry::initialized() const
 {

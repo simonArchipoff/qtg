@@ -149,7 +149,7 @@ private:
             self->soundcarddrift.update(self->currentFrame);
 
             std::cerr << self->soundcarddrift.getResult(self->sampleRate) << std::endl;
-
+        
         BufferPtr buffer;
         if (!self->bufferPool.try_dequeue(buffer)) {
             return 0;

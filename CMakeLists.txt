@@ -31,8 +31,8 @@ find_package(OpenMP REQUIRED)
 find_package(RtAudio REQUIRED)
 find_package(imgui REQUIRED)
 find_package(implot REQUIRED)
-
-
+#find_package(kfr REQUIRED)
+find_package(KFR CONFIG REQUIRED)
 add_executable(qtg
     src/main.cpp
     src/ResultViewer.cpp
@@ -45,4 +45,4 @@ find_package(OpenGL REQUIRED)
 #target_compile_definitions(qtg PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
 
 
-target_link_libraries(qtg PRIVATE sndfile OpenMP::OpenMP_CXX glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio )
+target_link_libraries(qtg PRIVATE sndfile OpenMP::OpenMP_CXX glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio kfr)

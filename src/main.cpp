@@ -26,15 +26,13 @@ int main(int ac, char ** av){
 
     CorrelationBank bank;
     assert(input.getSampleRate() == 192000);
-    bank.init(input.getSampleRate() +0.3,freqs);
+    bank.init(input.getSampleRate() + 0.55,freqs);
     
 
     
     ResultViewer viewer;
     viewer.onReset = [&bank](){bank.reset();};
-    std::cerr<< "start\n";
     input.start();
-    std::cerr << "after start\n";
     bool c;
     while (!viewer.shouldClose()) {
         bool new_buffer=false;
