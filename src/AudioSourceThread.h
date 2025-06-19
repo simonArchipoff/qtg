@@ -10,33 +10,38 @@
 #include <iostream>
 #include "concurrentqueue.h"
 
+#include "BandpassMixerDecim.h"
 
 
 
 
-
+template< uint sampleRate=192000, uint block_per_sec = 1, uint decimation = 1000> 
 class RtAudioCaptureThread {
 public:
-    using Buffer = std::vector<float>;
+    static_assert(0 == sampleRate % block_per_sec);
+    static_assert(0 == sampleRate %  decimation);
+    static constexpr uint BLOCK_SIZE = sampleRate / block_per_sec;
+    static constexpr uint OUTPUT_SIZE = BLOCK_SIZE / decimation;
+    using Buffer = std::vector<std::complex<float>>;
     using BufferPtr = std::shared_ptr<Buffer>;
 
+    std::vector<float> internal_buffer;
+    RealToBasebandDecimator<sampleRate,BLOCK_SIZE,OUTPUT_SIZE,decimation> dsp;
 
     RtAudioCaptureThread(int inputDeviceId = -1,
-                         unsigned int sampleRate = 192000,
-                         unsigned int channels = 2,
-                         unsigned int framesPerBuffer = 1024 * 64,
-                         size_t poolSize = 10
+                        uint number_channels=2,
+                        size_t poolSize = 10
                          )
-        : sampleRate(sampleRate),
-          channels(channels),
-          framesPerBuffer(framesPerBuffer),
+         :
+         internal_buffer(BLOCK_SIZE),
+          channels(number_channels),
           inputDeviceId(inputDeviceId),
           soundcarddrift(128),
           isRunning(false),
           audio(nullptr)
     {
         for (size_t i = 0; i < poolSize; ++i) {
-            auto buf = std::make_shared<Buffer>(framesPerBuffer);
+            auto buf = std::make_shared<Buffer>(OUTPUT_SIZE);
             bufferPool.enqueue(buf);
         }
     }
@@ -62,10 +67,11 @@ public:
         iParams.firstChannel = 0;
 
         RtAudio::StreamOptions options;
-        options.flags = RTAUDIO_MINIMIZE_LATENCY;
-
+        //options.flags = RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_SCHEDULE_REALTIME ;
+        uint bs = BLOCK_SIZE;
         audio->openStream(nullptr, &iParams, RTAUDIO_FLOAT32,
-                        sampleRate, &framesPerBuffer, &RtAudioCaptureThread::rtCallback, this, &options);
+                        sampleRate, &bs, &RtAudioCaptureThread::rtCallback, this, &options);
+        assert(bs==BLOCK_SIZE);
 
         isRunning.store(true);
         audio->startStream();
@@ -91,8 +97,11 @@ public:
     bool getBuffer(BufferPtr& p) {
         return outputQueue.try_dequeue(p);
     }
-    int getSampleRate(){
-        return this->sampleRate;
+    int getSampleRate()const {
+        return sampleRate;
+    }
+    int getDecimationFactor() const{
+        return decimation;
     }
     void returnBuffer(BufferPtr& p) {
         auto r = bufferPool.enqueue(p);
@@ -122,10 +131,10 @@ public:
 private:
     SoundCardDrift soundcarddrift;
     unsigned int currentFrame = 0;
-    unsigned int sampleRate;
     unsigned int channels;
-    unsigned int framesPerBuffer;
     int inputDeviceId;
+
+
 
     std::atomic<bool> isRunning;
     std::unique_ptr<RtAudio> audio;
@@ -139,26 +148,25 @@ private:
     {
 
         auto* self = static_cast<RtAudioCaptureThread*>(userData);
-
+        BufferPtr buffer_output;
         
         if (status) std::cerr << "Stream underflow/overflow detected." << std::endl;
         if (!inputBuffer) return 0;
         
         self->currentFrame += nFrames;
 
-            self->soundcarddrift.update(self->currentFrame);
+        self->soundcarddrift.update(self->currentFrame);
 
-            std::cerr << self->soundcarddrift.getResult(self->sampleRate) << std::endl;
+        std::cerr << self->soundcarddrift.getResult(sampleRate) << std::endl;
         
-        BufferPtr buffer;
-        if (!self->bufferPool.try_dequeue(buffer)) {
+        if (!self->bufferPool.try_dequeue(buffer_output)) {
             return 0;
         }
 
         const float* in = static_cast<const float*>(inputBuffer);
 
         if (self->channels == 1) {
-            std::copy(in, in + nFrames, buffer->begin());
+            std::copy(in, in + nFrames, self->internal_buffer.data());
         }
         else {
             for (unsigned int i = 0; i < nFrames; ++i) {
@@ -166,10 +174,12 @@ private:
                 for (unsigned int c = 0; c < self->channels; ++c) {
                     sum += in[i * self->channels + c];
                 }
-                (*buffer)[i] = sum / self->channels;
+                self->internal_buffer[i] = sum / self->channels;
             }
         }
-        self->outputQueue.enqueue(buffer);
+        self->dsp.process(self->internal_buffer,buffer_output->data());
+        
+        self->outputQueue.enqueue(buffer_output);
         return 0;
     }
 };

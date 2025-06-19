@@ -71,10 +71,12 @@ void ResultViewer::renderFrame() {
         ImVec2 size = ImGui::GetContentRegionAvail();
         // Le plot ImPlot
         if (ImPlot::BeginPlot("energie vs dérive", size, ImPlotFlags_NoLegend)) {
-            ImPlot::SetupAxes("seconde par mois", "energie", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+            ImPlot::SetupAxes("seconde par mois", "energie", 0& ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+            ImPlot::SetupAxisLimits(ImAxis_X1, -60, 60);
             //ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            auto spm = latestResult->sec_per_month();
-            ImPlot::PlotStems("seconde par mois",
+            auto spm =  latestResult->sec_per_month();
+                        //latestResult->frequencies;
+            ImPlot::PlotLine("seconde par mois",
                 spm.data(),
                 latestResult->magnitudes.data(),
                 (int)latestResult->frequencies.size());
