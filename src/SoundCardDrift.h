@@ -24,8 +24,8 @@ struct DriftEntry {
 };
 
 
+struct DriftResult {double average, std_div;};
 struct SoundCardDrift{
-    struct DriftResult {double average, std_div;};
     std::vector<DriftEntry> diffentries;
     int nextEntry;
 
@@ -33,7 +33,7 @@ struct SoundCardDrift{
     }
 
     void update(int frame);
-    DriftResult getResult(uint64_t sr);
+    bool getResult(uint64_t sr,DriftResult&result);
 };
 
-std::ostream& operator<<(std::ostream& os, const SoundCardDrift::DriftResult& result);
+std::ostream& operator<<(std::ostream& os, const DriftResult& result);

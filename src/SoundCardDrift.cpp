@@ -6,13 +6,13 @@ const static uint64_t Giga = 1'000'000'000ull;
 void DriftEntry::init(uint64_t frame)
 {
     frame_init = frame;
-    clock_gettime(CLOCK_MONOTONIC, &init_ts);
+    clock_gettime(CLOCK_REALTIME, &init_ts);
 }
 
 void DriftEntry::update(unsigned long current_frame)
 {
     frame_now = current_frame;
-    clock_gettime(CLOCK_MONOTONIC, &now_ts);
+    clock_gettime(CLOCK_REALTIME, &now_ts);
 }
 bool DriftEntry::initialized() const
 {
@@ -59,7 +59,7 @@ void SoundCardDrift::update(int frame)
 }
 
 
-SoundCardDrift::DriftResult SoundCardDrift::getResult(uint64_t sr)
+bool SoundCardDrift::getResult(uint64_t sr, DriftResult & result)
 {
     std::vector<double> diffs;
     diffs.reserve(diffentries.size());
@@ -75,7 +75,7 @@ SoundCardDrift::DriftResult SoundCardDrift::getResult(uint64_t sr)
 
     size_t count = diffs.size();
     if (count == 0)
-        return {0.0, 0.0};
+        return false;
 
     // Moyenne
     double sum = 0.0;
@@ -92,12 +92,14 @@ SoundCardDrift::DriftResult SoundCardDrift::getResult(uint64_t sr)
         variance /= (count - 1);
     }
     double std_dev = std::sqrt(variance);
-    return {average, std_dev};
+    result.average = average;
+    result.std_div = std_dev;
+    return true;
 }
 
 
 
-std::ostream& operator<<(std::ostream& os, const SoundCardDrift::DriftResult& result)
+std::ostream& operator<<(std::ostream& os, const DriftResult& result)
 {
         os << std::fixed
        << std::setprecision(std::numeric_limits<double>::max_digits10)

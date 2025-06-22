@@ -15,7 +15,7 @@
 
 
 
-template< uint sampleRate=192000, uint block_per_sec = 1, uint decimation = 1000> 
+template<uint sampleRate=192000, uint block_per_sec = 1, uint decimation = 1000> 
 class RtAudioCaptureThread {
 public:
     static_assert(0 == sampleRate % block_per_sec);
@@ -26,13 +26,14 @@ public:
     using BufferPtr = std::shared_ptr<Buffer>;
 
     std::vector<float> internal_buffer;
-    RealToBasebandDecimator<sampleRate,BLOCK_SIZE,OUTPUT_SIZE,decimation> dsp;
+    RealToBasebandDecimator dsp;
 
     RtAudioCaptureThread(int inputDeviceId = -1,
                         uint number_channels=2,
                         size_t poolSize = 10
-                         )
+                        )
          :
+         dsp(sampleRate,BLOCK_SIZE,OUTPUT_SIZE,decimation),
          internal_buffer(BLOCK_SIZE),
           channels(number_channels),
           inputDeviceId(inputDeviceId),
@@ -97,6 +98,15 @@ public:
     bool getBuffer(BufferPtr& p) {
         return outputQueue.try_dequeue(p);
     }
+    bool getDriftSoundcard(DriftResult & result){
+        bool good = false;
+        DriftResult r;
+        while(driftresultqueue.try_dequeue(r)){
+            result = r;
+            good = true;
+        }
+        return good;
+    }
     int getSampleRate()const {
         return sampleRate;
     }
@@ -107,6 +117,7 @@ public:
         auto r = bufferPool.enqueue(p);
         assert(r);
     }
+
 
     static std::vector<std::string> listInputDevices() {
         std::vector<std::string> deviceList;
@@ -128,19 +139,21 @@ public:
         return deviceList;
     }
 
+
+
 private:
     SoundCardDrift soundcarddrift;
     unsigned int currentFrame = 0;
     unsigned int channels;
     int inputDeviceId;
 
-
-
     std::atomic<bool> isRunning;
     std::unique_ptr<RtAudio> audio;
 
     moodycamel::ConcurrentQueue<BufferPtr> bufferPool;
     moodycamel::ConcurrentQueue<BufferPtr> outputQueue;
+    moodycamel::ConcurrentQueue<DriftResult> driftresultqueue;
+
 
     static int rtCallback(void* outputBuffer, void* inputBuffer,
                           unsigned int nFrames, double /*streamTime*/,
@@ -156,9 +169,10 @@ private:
         self->currentFrame += nFrames;
 
         self->soundcarddrift.update(self->currentFrame);
-
-        std::cerr << self->soundcarddrift.getResult(sampleRate) << std::endl;
         
+        DriftResult driftresult;
+        if(self->soundcarddrift.getResult(sampleRate, driftresult))
+            self->driftresultqueue.try_enqueue(driftresult);
         if (!self->bufferPool.try_dequeue(buffer_output)) {
             return 0;
         }
@@ -178,7 +192,11 @@ private:
             }
         }
         self->dsp.process(self->internal_buffer,buffer_output->data());
-        
+        DriftResult dr;
+        if(self->soundcarddrift.getResult(self->getSampleRate(), dr)){
+            std::cerr << dr << std::endl;
+            self->driftresultqueue.try_enqueue(dr);
+        }
         self->outputQueue.enqueue(buffer_output);
         return 0;
     }

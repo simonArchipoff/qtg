@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <cmath>
@@ -7,19 +6,20 @@
 
 
 using namespace std;
-template<uint sample_rate
-        , uint input_size
-        , uint outputsize
-        , uint decimation_factor>
+
 class RealToBasebandDecimator {
 public:
-    RealToBasebandDecimator()
+    RealToBasebandDecimator(  uint sample_rate
+                            , uint input_size
+                            , uint outputsize
+                            , uint decimation_factor)
+                            :frame(0),input_size(input_size),sample_rate(sample_rate), outputsize(outputsize),decimation_factor(decimation_factor)
     {
-        frame=0;
-        bandpass.setup(8,sample_rate,32768,1);
+        bandpass.setup(8,sample_rate,32768,10);
         lowpass_i.setup(4,sample_rate, 1000);
         lowpass_q.setup(4,sample_rate, 1000);
-
+        tmp_buff_i.resize(input_size);
+        tmp_buff_q.resize(input_size);
     }
 
     void process(vector<float> & input_block, std::complex<float>*out) {
@@ -38,8 +38,8 @@ public:
             tmp_buff_i[i] = c * input_block[i];
             tmp_buff_q[i] = s * input_block[i];
         }
-        float* i_ptrs[1] = { tmp_buff_i };
-        float* q_ptrs[1] = { tmp_buff_q };
+        float* i_ptrs[1] = { tmp_buff_i.data() };
+        float* q_ptrs[1] = { tmp_buff_q.data() };
         lowpass_i.process(input_size, i_ptrs);
         lowpass_q.process(input_size, q_ptrs);
 
@@ -54,8 +54,9 @@ public:
 
 private:
     unsigned long frame;
-    float tmp_buff_i[input_size];
-    float tmp_buff_q[input_size];
+    unsigned long input_size,sample_rate,outputsize,decimation_factor;
+    std::vector<float> tmp_buff_i;
+    std::vector<float> tmp_buff_q;
     Dsp::SimpleFilter<Dsp::Butterworth::BandPass<8>, 1> bandpass;
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 1> lowpass_i,lowpass_q;   
 };

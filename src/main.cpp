@@ -4,11 +4,11 @@
 #include <vector>
 #include <string>
 #include <iomanip> // pour std::setprecision
-#include <CorrelationBank.h>
 #include "AudioSourceFlac.h"
 #include "ResultViewer.h"
 #include <kiss_fft.h>
 #include <random>
+#include <CircularBuffer.h>
 double random_double()
 {
     static thread_local std::mt19937 rng(std::random_device{}());
@@ -16,49 +16,6 @@ double random_double()
     return dist(rng);
 }
 
-template <typename T>
-class CircularBuffer
-{
-public:
-    CircularBuffer(size_t capacity)
-        : capacity_(capacity), buffer_(capacity), head_(0), size_(0)
-    {
-    }
-
-    // Ajoute des données à la fin du buffer (concaténation)
-    void push_back(const std::vector<T> &data)
-    {
-        assert(data.size() <= capacity_);
-        for (auto &v : data)
-        {
-            buffer_[head_] = v;
-            head_ = (head_ + 1) % capacity_;
-            if (size_ < capacity_)
-                size_++;
-        }
-    }
-
-    // Accès en lecture au buffer dans l’ordre chronologique (ancien vers récent)
-    // Remplit out avec le contenu actuel, out doit avoir au moins size_ éléments
-    void get_ordered(std::vector<T> &out) const
-    {
-        out.resize(size_);
-        size_t start = (head_ + capacity_ - size_) % capacity_;
-        for (size_t i = 0; i < size_; ++i)
-        {
-            out[i] = buffer_[(start + i) % capacity_];
-        }
-    }
-
-    size_t size() const { return size_; }
-    size_t capacity() const { return capacity_; }
-
-private:
-    size_t capacity_;
-    std::vector<T> buffer_;
-    size_t head_; // position d'écriture
-    size_t size_; // nb éléments valides
-};
 
 void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
                          std::vector<std::complex<float>> &freq_data)
@@ -94,7 +51,8 @@ int main(int ac, char **av)
 {
     using RACT = RtAudioCaptureThread<>;
     auto devices = RACT::listInputDevices();
-    CircularBuffer<std::complex<float>> circbuf(1024 * 1024);
+    CircularBuffer<std::complex<float>> circbuf(1024*32);
+    CircularBuffer<DriftResult> driftbuf(128);
 
     RACT input(131);
     /* target_link_libraries(qtg PRIVATE kissfft::kissfft-float)
@@ -105,11 +63,11 @@ int main(int ac, char **av)
     } */
 
     // CorrelationBank bank;
-    assert(input.getSampleRate() == 192000);
+    assert(input.getSampleRate() == 192000 || input.getSampleRate() == 96000);
     // bank.init(input.getSampleRate() + 0.55,freqs);
 
     ResultViewer viewer;
-    // viewer.onReset = [&bank](){bank.reset();};
+    viewer.onReset = [&circbuf](){circbuf.reset();};
     input.start();
     bool c;
     while (!viewer.shouldClose())
@@ -120,8 +78,14 @@ int main(int ac, char **av)
         {
             new_buffer = true;
             circbuf.push_back(*b);
+            viewer.pushRawData(*b);
             input.returnBuffer(b);
         }
+        DriftResult d;
+        while(input.getDriftSoundcard(d)){ 
+            viewer.pushDriftResult(d);
+        }
+
         if (new_buffer)
         {
             std::vector<complex<float>> tmp;
@@ -137,7 +101,7 @@ int main(int ac, char **av)
             for (int i = 0; i < out.size() / 2; i++)
             {
                 auto tmp = i * f0 + 32760;
-                if (32767 < tmp && tmp < 32769)
+                if (true || abs(tmp-32768) < 20)
                 {
                     r.frequencies.push_back(tmp);
                     float energy_pos = std::norm(out[i]);
