@@ -4,11 +4,9 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <implot.h>
-#include <iostream>
-#include <thread>
 #include <GL/gl.h>
 
-ResultViewer::ResultViewer() : driftbuf(16) {
+ResultViewer::ResultViewer() {
     if (!glfwInit()) throw std::runtime_error("Failed to init GLFW");
     window = glfwCreateWindow(800, 600, "Result Viewer", nullptr, nullptr);
     if (!window) {
@@ -46,8 +44,8 @@ bool ResultViewer::shouldClose() const {
 void ResultViewer::pushRawData(std::vector<std::complex<float>> & c) {
     //std::optional<std::vector<float>>;
     raw_data = std::vector<float>(c.size());
-    for(int i = 0; i < c.size(); i++)
-        (*raw_data)[i] =std::abs(c[i]) ;
+    for(uint i = 0; i < c.size(); i++)
+        (*raw_data)[i] =std::abs(c[i]);
 
 }
 
@@ -70,14 +68,21 @@ void ResultViewer::renderFrame() {
     
     ImPlot::MapInputDefault();
 
-    ImGui::Text("Time: %.2f s", latestResult ? latestResult->time:0.0);
-    ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-            onReset();
-        }
 
-    ImGui::SameLine();
-    if(raw_data){
+    //ImGui::SameLine();
+
+    if(ImGui::CollapsingHeader("Soundcard data")){
+        ImGui::BeginGroup();
+        if(drift){
+            ImGui::Text("samplerate: %.2fHz ± %.2f (ic95)", drift->sampleRate + drift->average, drift->ci95_set ? drift->ci95 : std::nan("not yet"));
+            ImGui::Text("%+.2f (±%.2f) sec per month", drift->get_spm(),drift->ci95_set ? drift->get_spm_ci95() : std::nan("not yet"));
+            ImGui::Text("%f ppm",drift->get_ppm());
+        } else{
+            ImGui::Text("Drift data incomming...");
+        }
+        ImGui::EndGroup();
+        ImGui::SameLine();
+        if(raw_data){
         if (ImPlot::BeginPlot("sample", ImVec2(300, 100),
                         ImPlotFlags_NoLegend | ImPlotFlags_NoTitle | ImPlotFlags_NoMenus)) {
             ImPlot::SetupAxis(ImAxis_Y1, "amplitude", ImPlotAxisFlags_AutoFit);
@@ -87,7 +92,7 @@ void ResultViewer::renderFrame() {
                                 ImPlotAxisFlags_NoTickLabels |
                                 ImPlotAxisFlags_NoTickMarks |
                                 ImPlotAxisFlags_NoGridLines |
-                                ImPlotAxisFlags_AutoFit);
+                                ImPlotAxisFlags_AutoFit );
                         //ImPlot::SetupAxes("i", "amplitude", ImPlotAxisFlags_AutoFit| ImPlotAxisFlags_NoGridLines, ImPlotAxisFlags_AutoFit);
                         
             ImPlot::PlotLine("samples",
@@ -96,42 +101,31 @@ void ResultViewer::renderFrame() {
             ImPlot::EndPlot();
         }
     }
-    ImGui::SameLine();
-
-    if (ImPlot::BeginPlot("Moyenne & Erreur", ImVec2(400, 300))) {
-        ImPlot::SetupAxes("x", "moyenne",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
-        auto b = driftbuf.get_ordered();
-        std::vector<float> x(b.size()),y(b.size()),err(b.size());
-        for(int i = 0; i < b.size(); i++){
-            x[i] = i;
-            y[i] = b[i].average;
-            err[i] = b[i].std_div;
-        }
-
-
-        // Barres d’erreur verticales (σ)
-        ImPlot::PlotErrorBars("Erreur", x.data(), y.data(), err.data(), (int)x.size(), 0 );
-
-        // Courbe principale
-        ImPlot::PlotLine("Moyenne", x.data(), y.data(), (int)x.size());
-
-
-        ImPlot::EndPlot();
     }
 
 
-    if (latestResult) {
-
-
+    if (latestResult){
+    if (ImGui::Button("Restart integration")) {
+            onReset();
+        } 
+        ImGui::SameLine();
+        ImGui::Text("Time: %.2fs Progress: %.2f%%", latestResult->time, latestResult->getProgressPercent());
+        if(ImGui::Button("Apply current drift Compensation")){
+            if(drift){
+                onApplyCorrection(drift->get_spm());
+            }
+        }
+        ImGui::SameLine();
+        ImGui::Text("Compensation %.2f spm", latestResult->correction_spm);
         ImVec2 size = ImGui::GetContentRegionAvail();
         // Le plot ImPlot
-        if (ImPlot::BeginPlot("energie vs dérive", size, ImPlotFlags_NoLegend)) {
-            ImPlot::SetupAxes("seconde par mois", "energie", 0, ImPlotAxisFlags_AutoFit);
+        if (ImPlot::BeginPlot("energy vs drift", size, ImPlotFlags_NoLegend)) {
+            ImPlot::SetupAxes("second per month", "energy",ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
             ImPlot::SetupAxisLimits(ImAxis_X1, -60, 60);
             //ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            auto spm =  latestResult->sec_per_month();
+            auto spm =  latestResult->sec_per_month_corrected();
                         //latestResult->frequencies;
-            ImPlot::PlotLine("seconde par mois",
+            ImPlot::PlotLine("second per month",
                 spm.data(),
                 latestResult->magnitudes.data(),
                 (int)latestResult->frequencies.size());
@@ -140,7 +134,7 @@ void ResultViewer::renderFrame() {
         }
 
     } else {
-        ImGui::Text("En attente de données...");
+        ImGui::Text("Waiting for data");
     }
 
     ImGui::End();

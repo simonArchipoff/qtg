@@ -1,20 +1,15 @@
-
+#include <CLI/CLI.hpp>
 #include <iostream>
-#include <algorithm>
 #include <vector>
 #include <string>
-#include <iomanip> // pour std::setprecision
-#include "AudioSourceFlac.h"
 #include "ResultViewer.h"
+
+#include "AudioSourceThread.h"
 #include <kiss_fft.h>
-#include <random>
-#include <CircularBuffer.h>
-double random_double()
-{
-    static thread_local std::mt19937 rng(std::random_device{}());
-    static thread_local std::uniform_real_distribution<double> dist(-1.0, 1.0);
-    return dist(rng);
-}
+#include "CircularBuffer.h"
+#include "Constants.h"
+
+
 
 
 void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
@@ -47,27 +42,46 @@ void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
     free(cfg);
 }
 
-int main(int ac, char **av)
+int main(int argc, char **argv)
 {
-    using RACT = RtAudioCaptureThread<>;
-    auto devices = RACT::listInputDevices();
+    CLI::App app{"qtg, a quartz watch timegrapher"};
+
+    bool list_devices = false;
+    app.add_flag("-l,--list", list_devices, "List available input devices");
+
+    int selected_device_index = -1;
+    std::vector<std::string> inputDevices;
+
+    app.add_option("-d,--device", selected_device_index, "Select input device by index");
+    
+    uint sampleRate = 96000;
+    app.add_option("-s,--sample-rate",sampleRate,"requested sampleRate");
+
+    double compensation = 0.0;
+    app.add_option("-c,--compensation",compensation, "sound card compensation");
+
+    CLI11_PARSE(app, argc, argv);
+
+    using RACT = RtAudioCaptureThread;
+
+    if(list_devices){
+        auto devices = RACT::listInputDevices();
+        for(auto & i : devices){
+            std::cout << i << std::endl;
+        }
+        exit(0);
+    }
+
     CircularBuffer<std::complex<float>> circbuf(1024*32);
-    CircularBuffer<DriftResult> driftbuf(128);
 
-    RACT input(131);
-    /* target_link_libraries(qtg PRIVATE kissfft::kissfft-float)
-    std::vector<double> freqs ;
-    for(int i = 0; i < 200; i+=1){
-        double n = 700;
-        freqs.push_back(32768+i/n);
-    } */
+    RACT input(selected_device_index,sampleRate);
 
-    // CorrelationBank bank;
+    
     assert(input.getSampleRate() == 192000 || input.getSampleRate() == 96000);
-    // bank.init(input.getSampleRate() + 0.55,freqs);
 
     ResultViewer viewer;
     viewer.onReset = [&circbuf](){circbuf.reset();};
+    viewer.onApplyCorrection =[&compensation](double v){compensation = v;};
     input.start();
     bool c;
     while (!viewer.shouldClose())
@@ -92,25 +106,29 @@ int main(int ac, char **av)
             circbuf.get_ordered(tmp);
             std::vector<complex<float>> out;
             out.resize(tmp.size());
-            ;
             compute_fft_complex(tmp, out);
 
             struct Result r;
+
             uint sr = input.getSampleRate() / input.getDecimationFactor();
+            r.time = 1.0 * tmp.size() / sr;
+            r.progress = 1.0 * circbuf.size() / circbuf.capacity();
             float f0 = sr / static_cast<float>(out.size());
-            for (int i = 0; i < out.size() / 2; i++)
+            for (uint i = 0; i < out.size() / 2; i++)
             {
                 auto tmp = i * f0 + 32760;
-                if (true || abs(tmp-32768) < 20)
+                if (abs(tmp-Constants::QUARTZ_FREQUENCY) < 8)
                 {
                     r.frequencies.push_back(tmp);
                     float energy_pos = std::norm(out[i]);
                     r.magnitudes.push_back(energy_pos);
                 }
             }
-                std::cout << out.size() << " " << f0 << std::endl;
-                if (r.frequencies.size() > 2)
+                if (r.frequencies.size() > 2){
+                    r.correction_spm = compensation;
                     viewer.pushResult(r);
+
+                }
             }
 
             viewer.renderFrame();

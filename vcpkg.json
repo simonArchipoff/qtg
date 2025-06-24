@@ -1,0 +1,27 @@
+{
+  "name": "qtg",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "cli11"
+    },
+    {
+      "name": "glfw3"
+    },
+    {
+      "name": "imgui",
+      "features": [ "glfw-binding", "opengl3-binding" ]
+    },
+    {
+      "name": "implot"
+    },
+    {
+      "name": "kissfft"
+    },
+    {
+      "name": "rtaudio",
+      "features": [ "alsa" ]
+    }
+  ],
+  "builtin-baseline": "latest"
+}

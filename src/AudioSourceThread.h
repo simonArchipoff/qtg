@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rtaudio/RtAudio.h>
-#include <thread>
 #include <atomic>
 #include <vector>
 #include <memory>
@@ -15,32 +14,46 @@
 
 
 
-template<uint sampleRate=192000, uint block_per_sec = 1, uint decimation = 1000> 
 class RtAudioCaptureThread {
 public:
-    static_assert(0 == sampleRate % block_per_sec);
-    static_assert(0 == sampleRate %  decimation);
-    static constexpr uint BLOCK_SIZE = sampleRate / block_per_sec;
-    static constexpr uint OUTPUT_SIZE = BLOCK_SIZE / decimation;
+
+
     using Buffer = std::vector<std::complex<float>>;
     using BufferPtr = std::shared_ptr<Buffer>;
 
-    std::vector<float> internal_buffer;
-    RealToBasebandDecimator dsp;
+     const uint sampleRate;
+    const uint block_per_sec;
+    const uint decimation; 
+      const uint BLOCK_SIZE;
+    const uint OUTPUT_SIZE;
 
+
+
+
+     RealToBasebandDecimator dsp;
+    std::vector<float> internal_buffer;     
     RtAudioCaptureThread(int inputDeviceId = -1,
-                        uint number_channels=2,
-                        size_t poolSize = 10
+                        uint sampleRate=96000,
+                        uint block_per_sec = 1,
+                        uint decimation = 2000,
+                        size_t poolSize = 10,
+                        uint number_channels=2
                         )
-         :
+         :sampleRate(sampleRate),
+         block_per_sec(block_per_sec),
+         decimation(decimation),
+         BLOCK_SIZE(sampleRate/block_per_sec),
+         OUTPUT_SIZE(BLOCK_SIZE / decimation),
          dsp(sampleRate,BLOCK_SIZE,OUTPUT_SIZE,decimation),
-         internal_buffer(BLOCK_SIZE),
-          channels(number_channels),
-          inputDeviceId(inputDeviceId),
-          soundcarddrift(128),
-          isRunning(false),
-          audio(nullptr)
-    {
+         internal_buffer(sampleRate / block_per_sec),
+         soundcarddrift(128),
+         channels(number_channels),
+         inputDeviceId(inputDeviceId),
+         isRunning(false),
+         audio(nullptr)
+    {  
+        assert(0 == sampleRate % block_per_sec);
+        assert(0 == sampleRate %  decimation);
         for (size_t i = 0; i < poolSize; ++i) {
             auto buf = std::make_shared<Buffer>(OUTPUT_SIZE);
             bufferPool.enqueue(buf);
@@ -68,7 +81,7 @@ public:
         iParams.firstChannel = 0;
 
         RtAudio::StreamOptions options;
-        //options.flags = RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_SCHEDULE_REALTIME ;
+        options.flags = RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_SCHEDULE_REALTIME ;
         uint bs = BLOCK_SIZE;
         audio->openStream(nullptr, &iParams, RTAUDIO_FLOAT32,
                         sampleRate, &bs, &RtAudioCaptureThread::rtCallback, this, &options);
@@ -131,8 +144,7 @@ public:
                 oss << "[" << i << "] " << info.name
                     << " (" << info.inputChannels << " in / "
                     << info.outputChannels << " out)";
-                std::cout << oss.str() << std::endl;
-                deviceList.push_back(info.name);
+                deviceList.push_back(oss.str());
             }
         }
         
@@ -163,19 +175,24 @@ private:
         auto* self = static_cast<RtAudioCaptureThread*>(userData);
         BufferPtr buffer_output;
         
-        if (status) std::cerr << "Stream underflow/overflow detected." << std::endl;
+        if (status){
+            std::cerr << "Stream underflow/overflow detected." << std::endl;
+            exit(1);
+        }
         if (!inputBuffer) return 0;
         
         self->currentFrame += nFrames;
 
         self->soundcarddrift.update(self->currentFrame);
         
-        DriftResult driftresult;
-        if(self->soundcarddrift.getResult(sampleRate, driftresult))
-            self->driftresultqueue.try_enqueue(driftresult);
         if (!self->bufferPool.try_dequeue(buffer_output)) {
             return 0;
         }
+        DriftResult dr;
+        if(self->soundcarddrift.getResult(self->getSampleRate(), dr)){
+            self->driftresultqueue.try_enqueue(dr);
+        }
+
 
         const float* in = static_cast<const float*>(inputBuffer);
 
@@ -192,11 +209,7 @@ private:
             }
         }
         self->dsp.process(self->internal_buffer,buffer_output->data());
-        DriftResult dr;
-        if(self->soundcarddrift.getResult(self->getSampleRate(), dr)){
-            std::cerr << dr << std::endl;
-            self->driftresultqueue.try_enqueue(dr);
-        }
+
         self->outputQueue.enqueue(buffer_output);
         return 0;
     }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 
 #include <Butterworth.h>
 
@@ -16,8 +15,8 @@ public:
                             :frame(0),input_size(input_size),sample_rate(sample_rate), outputsize(outputsize),decimation_factor(decimation_factor)
     {
         bandpass.setup(8,sample_rate,32768,10);
-        lowpass_i.setup(4,sample_rate, 1000);
-        lowpass_q.setup(4,sample_rate, 1000);
+        lowpass_i.setup(4,sample_rate, 100);
+        lowpass_q.setup(4,sample_rate, 100);
         tmp_buff_i.resize(input_size);
         tmp_buff_q.resize(input_size);
     }
@@ -44,7 +43,7 @@ public:
         lowpass_q.process(input_size, q_ptrs);
 
 
-        for(int i = 0; i < outputsize; i++){
+        for(uint i = 0; i < outputsize; i++){
             assert(i*decimation_factor < input_size);
             out[i] = std::complex<float>(tmp_buff_i[i*decimation_factor]
                                         ,tmp_buff_q[i*decimation_factor]);

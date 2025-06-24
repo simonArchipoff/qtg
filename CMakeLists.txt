@@ -12,6 +12,7 @@ add_compile_options(
 add_compile_options(
   -march=native
   -mavx2
+  -Wextra -Wreorder
 )
 
 # Fetch moodycamel::readerwriterqueue
@@ -43,18 +44,13 @@ add_library(DSPFilters STATIC
 target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include)
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
+
 find_package(kissfft CONFIG REQUIRED)
-
-
-find_package(PkgConfig)
-
-pkg_search_module(SNDFILE REQUIRED sndfile IMPORTED_TARGET)
-find_package(OpenMP REQUIRED)
-
-
 find_package(RtAudio REQUIRED)
 find_package(imgui REQUIRED)
 find_package(implot REQUIRED)
+find_package(CLI11 REQUIRED)
 
 add_executable(qtg
     src/main.cpp
@@ -68,5 +64,5 @@ find_package(OpenGL REQUIRED)
 #target_compile_definitions(qtg PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
 
 
-target_link_libraries(qtg PRIVATE sndfile OpenMP::OpenMP_CXX glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio DSPFilters)
-target_link_libraries(qtg PRIVATE kissfft::kissfft-float)
+target_link_libraries(qtg PRIVATE glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio DSPFilters)
+target_link_libraries(qtg PRIVATE kissfft::kissfft-float CLI11::CLI11)
