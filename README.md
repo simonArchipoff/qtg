@@ -7,6 +7,8 @@ what you need :
 * A microphone with a reasonably good with ultrasound (any COTS electret should do)
 * A very good system clock (the result cannot be better than your computer's clock), NTP is highly recommanded
 
+![screenshot](doc/casio_a168_qtg.png)
+
 ## How does it work
 
 As one might guess, the sound produced by a watch's quartz is very faint, you cannot detect it easily. This program use a bit of DSP magic to remove the noise and detect it.
@@ -55,7 +57,10 @@ cmake --build build --config Release
 
 ## usage:
 `qtg -l` give the list of the sound interfaces available on your system and their ID
-`qtg -d ID` start the program with the soundcard indexed by ID
+
+`qtg -d ID` start the program with the soundcard indexed by ID.
+Tip : you can snap your finger in front of the microphone while looking at the temporal plot to make sure you selected the proper microphone
+
 `qtg --help` for other options
 
 ## Todo:
