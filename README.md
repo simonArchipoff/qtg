@@ -25,10 +25,10 @@ The last clock being very good on the long run we can use it to evaluate the dri
 
 
 Concretely, the DSP pipeline is as follow :
-watch -> microphone/soundcard -> bandpass arround 32768 -> mixing by oscillator at 32760Hz -> low pass at 16Hz -> downsampling by a factor 1000 or such -> compute which frequency arround 8hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
+watch -> microphone/soundcard -> bandpass around 32768 -> mixing by oscillator at 32760Hz -> low pass at 16Hz -> downsampling by a factor 1000 or such -> compute which frequency around 8hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
 
 regarding the soundcard :
-timestamp each new buffer and compute it's actual frequency using the system's clock. Actually take a bunch of measures to estimate the accuracy of the measure.
+timestamp each new buffer and compute it's actual frequency using the system's clock. Actually take a bunch of measures to estimate the accuracy.
 
 
 ## How good it is ?
@@ -37,8 +37,21 @@ It should be below 1sec/month with standard hardware and good condition (stable 
 +1sec/month for a quartz watch is just 0.012Hz too fast, it's one extra period every 83 seconds.
 
 ## compilation
-I would advice to install most dependancy using `vcpkg`
 
+In the system you should have opengl, alsa and such installed, I'll do the exact list later.
+I would advice to install most dependancy using `vcpkg`, it could be something like this :
+
+```sh
+git clone https://github.com/simonArchipoff/qtg.git
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+cd ../qtg
+../vcpkg/vcpkg install
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake --build build --config Release
+./build/qtg -l
+```
 
 ## usage:
 `qtg -l` give the list of the sound interfaces available on your system and their ID

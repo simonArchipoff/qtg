@@ -22,6 +22,5 @@
       "name": "rtaudio",
       "features": [ "alsa" ]
     }
-  ],
-  "builtin-baseline": "latest"
+  ]
 }
