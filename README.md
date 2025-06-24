@@ -28,12 +28,12 @@ Concretely, the DSP pipeline is as follow :
 watch -> microphone/soundcard -> bandpass around 32768 -> mixing by oscillator at 32760Hz -> low pass at 16Hz -> downsampling by a factor 1000 or such -> compute which frequency around 8hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
 
 regarding the soundcard :
-timestamp each new buffer and compute it's actual frequency using the system's clock. Actually take a bunch of measures to estimate the accuracy.
+timestamp each new buffer and compute it's actual frequency using the system's clock. Actually take a bunch of measures to estimate the precision.
 
 
 ## How good it is ?
 I dont know… it mostly depends on the soundcard's clock stability.
-It should be below 1sec/month with standard hardware and good condition (stable temperature and low load).
+It should be better than ±1sec/month with standard hardware and good condition (stable temperature and low load).
 +1sec/month for a quartz watch is just 0.012Hz too fast, it's one extra period every 83 seconds.
 
 ## compilation
