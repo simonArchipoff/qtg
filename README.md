@@ -4,7 +4,7 @@ This software is a time grapher for quartz watches. It uses a standard soundcard
 
 what you need :
 * A soundcard with a sample rate of 96000Hz minimum
-* A microphone with a reasonably good with ultrasound (any COTS electret should do)
+* A microphone reasonably good with ultrasound (any COTS electret should do)
 * A very good system clock (the result cannot be better than your computer's clock), NTP is highly recommanded
 
 ![screenshot](doc/casio_a168_qtg.png)
