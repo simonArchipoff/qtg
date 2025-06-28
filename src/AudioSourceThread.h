@@ -46,7 +46,7 @@ public:
          OUTPUT_SIZE(BLOCK_SIZE / decimation),
          dsp(sampleRate,BLOCK_SIZE,OUTPUT_SIZE,decimation),
          internal_buffer(sampleRate / block_per_sec),
-         soundcarddrift(128),
+         soundcarddrift(1024*1024,sampleRate),
          channels(number_channels),
          inputDeviceId(inputDeviceId),
          isRunning(false),
@@ -151,10 +151,10 @@ public:
         return deviceList;
     }
 
-
-
+public:
+    DriftData soundcarddrift;
 private:
-    SoundCardDrift soundcarddrift;
+
     unsigned int currentFrame = 0;
     unsigned int channels;
     int inputDeviceId;
@@ -183,16 +183,11 @@ private:
         
         self->currentFrame += nFrames;
 
-        self->soundcarddrift.update(self->currentFrame);
+        self->soundcarddrift.rt_insert_ts(self->currentFrame);
         
         if (!self->bufferPool.try_dequeue(buffer_output)) {
             return 0;
         }
-        DriftResult dr;
-        if(self->soundcarddrift.getResult(self->getSampleRate(), dr)){
-            self->driftresultqueue.try_enqueue(dr);
-        }
-
 
         const float* in = static_cast<const float*>(inputBuffer);
 

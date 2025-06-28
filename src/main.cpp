@@ -1,4 +1,5 @@
 #include <CLI/CLI.hpp>
+#include <ctime>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -130,7 +131,11 @@ int main(int argc, char **argv)
 
                 }
             }
-
+            if(  input.soundcarddrift.execute() && input.soundcarddrift.getSize() > 3)
+            {   
+                auto r = input.soundcarddrift.getResult(input.soundcarddrift.getSize(), CLOCK_TAI);
+                viewer.pushDriftResult(r);
+            }
             viewer.renderFrame();
         }
         input.stop();

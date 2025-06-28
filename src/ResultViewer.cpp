@@ -4,7 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <implot.h>
-#include <GL/gl.h>
+
 
 ResultViewer::ResultViewer() {
     if (!glfwInit()) throw std::runtime_error("Failed to init GLFW");
@@ -74,8 +74,8 @@ void ResultViewer::renderFrame() {
     if(ImGui::CollapsingHeader("Soundcard data")){
         ImGui::BeginGroup();
         if(drift){
-            ImGui::Text("samplerate: %.2fHz ± %.2f (ic95)", drift->sampleRate + drift->average, drift->ci95_set ? drift->ci95 : std::nan("not yet"));
-            ImGui::Text("%+.2f (±%.2f) sec per month", drift->get_spm(),drift->ci95_set ? drift->get_spm_ci95() : std::nan("not yet"));
+            ImGui::Text("samplerate: %.4fHz ± %.4f (ic95)", drift->get_fps_estimated(), drift->get_fps_ci95() );
+            ImGui::Text("%+.4f (±%.4f) sec per month", drift->get_spm(), drift->get_spm_ci95());
             ImGui::Text("%f ppm",drift->get_ppm());
         } else{
             ImGui::Text("Drift data incomming...");

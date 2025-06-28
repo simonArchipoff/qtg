@@ -1,0 +1,32 @@
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Braces (accolades sur ligne à part)
+BreakBeforeBraces: Allman
+
+# Longueur max de ligne
+ColumnLimit: 100
+
+# Style de switch / if / for
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+
+# Alignement d'arguments (non alignés verticalement)
+AlignAfterOpenBracket: DontAlign
+AlignOperands: false
+
+# Espaces
+SpaceBeforeParens: ControlStatements
+SpacesInAngles: false
+SpacesInContainerLiterals: false
+SpaceInEmptyParentheses: false
+
+# Autres
+AlwaysBreakTemplateDeclarations: Yes
+SortIncludes: false
+ReflowComments: false

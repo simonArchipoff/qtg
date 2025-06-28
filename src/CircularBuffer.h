@@ -1,5 +1,7 @@
 #pragma once
+#include <cstdint>
 #include <vector>
+#include <cassert>
 template <typename T>
 class CircularBuffer
 {
@@ -48,7 +50,12 @@ public:
         get_ordered(out);
         return out;
     }
-
+    const T& operator[](int idx) const {
+        assert(idx <= 0 || -idx < size_);
+        int64_t pos = static_cast<int64_t>(head_) - 1 + idx;
+        while (pos < 0) pos += capacity_;
+        return buffer_[pos % capacity_];
+    }
     size_t size() const { return size_; }
     size_t capacity() const { return capacity_; }
 

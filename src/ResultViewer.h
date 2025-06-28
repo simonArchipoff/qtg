@@ -4,6 +4,7 @@
 #include <vector>
 #include "concurrentqueue.h"
 #include <imgui.h>
+#include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include "ResultSignal.h"
 #include <functional>
@@ -18,7 +19,7 @@ public:
 
     void renderFrame();
     void pushResult(Result result);
-    void pushDriftResult(DriftResult & drift){
+    void pushDriftResult(DriftResult drift){
         this->drift = drift;
     }
     void pushRawData(std::vector<std::complex<float>> &);
