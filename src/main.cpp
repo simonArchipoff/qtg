@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    CircularBuffer<std::complex<float>> circbuf(1024*32);
+    CircularBuffer<std::complex<float>> circbuf(1024*8);
 
     RACT input(selected_device_index,sampleRate);
 

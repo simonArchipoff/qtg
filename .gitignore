@@ -1,4 +1,5 @@
 imgui.ini
+*.csv
 # Prerequisites
 *.d
 .cache

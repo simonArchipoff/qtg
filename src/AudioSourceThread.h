@@ -21,10 +21,10 @@ public:
     using Buffer = std::vector<std::complex<float>>;
     using BufferPtr = std::shared_ptr<Buffer>;
 
-     const uint sampleRate;
+    const uint sampleRate;
     const uint block_per_sec;
     const uint decimation; 
-      const uint BLOCK_SIZE;
+    const uint BLOCK_SIZE;
     const uint OUTPUT_SIZE;
 
 
@@ -155,7 +155,7 @@ public:
     DriftData soundcarddrift;
 private:
 
-    unsigned int currentFrame = 0;
+    uint64_t currentFrame = 0;
     unsigned int channels;
     int inputDeviceId;
 
