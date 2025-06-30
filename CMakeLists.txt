@@ -56,6 +56,7 @@ add_executable(qtg
     src/main.cpp
     src/ResultViewer.cpp
     src/SoundCardDrift.cpp
+    src/QuartzDSP.cpp
 )
 
 target_include_directories(qtg PRIVATE src ${concurrentqueue_SOURCE_DIR})

@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 #include <cassert>
@@ -45,6 +46,15 @@ public:
             out[i] = buffer_[(start + i) % capacity_];
         }
     }
+    void get_ordered(std::vector<T> &out, int size_tail) const{
+        int s = std::min<int>(size_tail,size());
+        out.resize(0);
+        out.reserve(s);
+        for(int i = -s; i <= 0; i++){
+            out.push_back((*this)[i]);
+        }
+    }
+
     std::vector<T> get_ordered(){
         std::vector<T> out;
         get_ordered(out);

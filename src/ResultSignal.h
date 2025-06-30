@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <optional>
 #include "Constants.h"
 #include <cassert>
 struct Result{

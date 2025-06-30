@@ -43,10 +43,7 @@ bool ResultViewer::shouldClose() const {
 }
 void ResultViewer::pushRawData(std::vector<std::complex<float>> & c) {
     //std::optional<std::vector<float>>;
-    raw_data = std::vector<float>(c.size());
-    for(uint i = 0; i < c.size(); i++)
-        (*raw_data)[i] =std::abs(c[i]);
-
+    raw_data = c;
 }
 
 void ResultViewer::renderFrame() {
@@ -82,8 +79,15 @@ void ResultViewer::renderFrame() {
         }
         ImGui::EndGroup();
         ImGui::SameLine();
-        if(raw_data){
-        if (ImPlot::BeginPlot("sample", ImVec2(300, 100),
+        if(raw_data.size() > 0){
+            auto v = raw_data;
+            std::vector<float> re;
+            re.reserve(v.size());
+
+            for (const auto& c : v) {
+                re.push_back(c.real());
+        }
+        if (ImPlot::BeginPlot("sample", ImVec2(500, 100),
                         ImPlotFlags_NoLegend | ImPlotFlags_NoTitle | ImPlotFlags_NoMenus)) {
             ImPlot::SetupAxis(ImAxis_Y1, "amplitude", ImPlotAxisFlags_AutoFit);
 
@@ -95,9 +99,7 @@ void ResultViewer::renderFrame() {
                                 ImPlotAxisFlags_AutoFit );
                         //ImPlot::SetupAxes("i", "amplitude", ImPlotAxisFlags_AutoFit| ImPlotAxisFlags_NoGridLines, ImPlotAxisFlags_AutoFit);
                         
-            ImPlot::PlotLine("samples",
-                raw_data->data(),
-                (int)raw_data->size());
+          ImPlot::PlotLine("Real", re.data(), (int)re.size());
             ImPlot::EndPlot();
         }
     }
@@ -138,7 +140,6 @@ void ResultViewer::renderFrame() {
     }
 
     ImGui::End();
-
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -70,6 +70,7 @@ struct DriftResult
     double get_ppm() const { return 1e6 * drift_hz / sampleRate; }
 
     double get_spm() const { return drift_hz * Constants::SECONDS_PER_MONTH / sampleRate; }
+    double get_spd() const {return drift_hz * Constants::SECONDS_PER_DAY / sampleRate; }
 
     double get_fps_ci95() const { return ci95_hz; }
 

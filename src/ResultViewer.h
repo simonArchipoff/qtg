@@ -34,7 +34,7 @@ public:
 private:
     GLFWwindow* window = nullptr;
     std::optional<Result> latestResult;
-    std::optional<std::vector<float>> raw_data;
+    std::vector<std::complex<float>> raw_data;
     std::optional<DriftResult> drift;
     double currentIntegrationPart = 0.0;
     void processQueue();
