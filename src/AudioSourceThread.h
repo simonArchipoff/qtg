@@ -1,12 +1,13 @@
 #pragma once
 
+#include <readerwriterqueue.h>
 #include <rtaudio/RtAudio.h>
 #include <atomic>
 #include <vector>
 #include <memory>
 #include "SoundCardDrift.h"
 #include "PeakDetector.h"
-
+#include <readerwriterqueue.h>
 #include <iostream>
 
 #include "QuartzDSP.h"
@@ -127,7 +128,7 @@ private:
     std::unique_ptr<RtAudio> audio;
 
 
-    moodycamel::ConcurrentQueue<DriftResult> driftresultqueue;
+    moodycamel::ReaderWriterQueue<DriftResult> driftresultqueue;
 
 
     static int rtCallback(void* outputBuffer, void* inputBuffer,

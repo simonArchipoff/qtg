@@ -2,6 +2,7 @@
 #include <RtAudio.h>
 #include <ctime>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include <string>
 #include "QuartzDSP.h"
