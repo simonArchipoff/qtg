@@ -29,7 +29,7 @@ public:
          sampleRate(dsp.config.sample_rate),
          input_size(block_size),
          dsp(dsp.rt),
-         soundcarddrift(1024*1024,sampleRate),
+         soundcarddrift(1024 * 32,sampleRate),
          channels(number_channels),
          inputDeviceId(inputDeviceId),
          isRunning(false),
