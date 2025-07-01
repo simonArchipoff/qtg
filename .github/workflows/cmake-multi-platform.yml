@@ -46,6 +46,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Set variables
+      id: vars
+      shell: bash
+      run: |
+        echo "build_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+        echo "vcpkg_dir=${{ github.workspace }}/vcpkg" >> $GITHUB_OUTPUT
+
+    - name: Clone vcpkg
+      run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
+
+    - name: Bootstrap vcpkg
+      run: ./vcpkg/bootstrap-vcpkg.sh
+      if: runner.os != 'Windows'
+
+    - name: Bootstrap vcpkg (Windows)
+      run: .\\vcpkg\\bootstrap-vcpkg.bat
+      if: runner.os == 'Windows'
+
+    - name: Install dependencies (imgui + implot)
+      run: ./vcpkg/vcpkg install imgui implot
+      if: runner.os != 'Windows'
+
+    - name: Install dependencies (imgui + implot) [Windows]
+      run: .\\vcpkg\\vcpkg.exe install imgui implot
+      if: runner.os == 'Windows'
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -62,6 +88,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake
         -S ${{ github.workspace }}
 
     - name: Build
