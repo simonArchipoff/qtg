@@ -190,7 +190,7 @@ LinearFitResult linear_regression(const std::vector<double> &x, const std::vecto
     double r_squared = 1 - (ss_res / Syy);
     double t_crit = get_t_critical_95(static_cast<int>(N - 2));
     double alpha_ci95 = t_crit * alpha_stderr;
-    return {alpha, beta, r_squared, alpha_stderr, .alpha_ci95 = alpha_ci95};
+    return {alpha, beta, r_squared, alpha_stderr, alpha_ci95};
 }
 
 DriftResult DriftData::getResult(size_t nb_points, int clock) const
