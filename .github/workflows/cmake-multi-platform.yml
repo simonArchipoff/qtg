@@ -66,11 +66,11 @@ jobs:
       if: runner.os == 'Windows'
 
     - name: Install dependencies (imgui + implot)
-      run: ./vcpkg/vcpkg install imgui implot
+      run: ./vcpkg/vcpkg install
       if: runner.os != 'Windows'
 
     - name: Install dependencies (imgui + implot) [Windows]
-      run: .\\vcpkg\\vcpkg.exe install imgui implot
+      run: .\\vcpkg\\vcpkg.exe install
       if: runner.os == 'Windows'
 
     - name: Set reusable strings
