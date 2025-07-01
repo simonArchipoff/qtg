@@ -53,6 +53,19 @@ jobs:
       run: |
         echo "build_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
         echo "vcpkg_dir=${{ github.workspace }}/vcpkg" >> $GITHUB_OUTPUT
+    - name: Install system dependencies for GLFW (Linux only)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libxinerama-dev \
+          libxcursor-dev \
+          libxrandr-dev \
+          libxi-dev \
+          libx11-dev \
+          libglu1-mesa-dev \
+          libxext-dev \
+          pkg-config
 
     - name: Clone vcpkg
       run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
