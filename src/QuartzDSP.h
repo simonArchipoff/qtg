@@ -3,6 +3,7 @@
 #include <Butterworth.h>
 #include "Constants.h"
 #include "concurrentqueue.h"
+#include <readerwriterqueue.h>
 #include <cstddef>
 #include <ResultSignal.h>
 #include "CircularBuffer.h"
@@ -28,7 +29,7 @@ private:
     std::vector<float> tmp_buff_q;
     Dsp::SimpleFilter<Dsp::Butterworth::BandPass<8>, 1> bandpass;
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 1> lowpass_i,lowpass_q;
-    moodycamel::ConcurrentQueue<std::complex<float>> outputQueue;
+    moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
     public:
     QuartzDSP_rt(QuartzDSPConfig & c)

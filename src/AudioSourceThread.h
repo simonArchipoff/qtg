@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include "SoundCardDrift.h"
+#include "PeakDetector.h"
 
 #include <iostream>
 
@@ -13,7 +14,7 @@
 
 
 
-class RtAudioCaptureThread {
+class RtAudioCaptureThread : public PeakDetector {
 public:
     const uint sampleRate;
     uint input_size;
@@ -24,7 +25,8 @@ public:
                         uint block_size=8 * 1024,
                         uint number_channels=2
                         )
-         :sampleRate(dsp.config.sample_rate),
+         :PeakDetector(dsp.config.sample_rate,1),
+         sampleRate(dsp.config.sample_rate),
          input_size(block_size),
          dsp(dsp.rt),
          soundcarddrift(1024*1024,sampleRate),
@@ -159,6 +161,7 @@ private:
                 self->internal_buffer[i] = sum / self->channels;
             }
         }
+        self->show_buffer(self->internal_buffer.data(),self->internal_buffer.size());
         self->dsp.rt_process(self->internal_buffer);
 
         return 0;

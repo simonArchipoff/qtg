@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
     QuartzDSPConfig c;
     QuartzDSP dsp(c);
-    RtAudioCaptureThread input(dsp,selected_device_index,1024*64);
+    RtAudioCaptureThread input(dsp,selected_device_index,1024*16);
 
     
     assert(input.getSampleRate() == 192000 || input.getSampleRate() == 96000);
@@ -56,7 +56,6 @@ int main(int argc, char **argv)
     while (!viewer.shouldClose())
     {
         bool new_buffer = false;
-
         DriftResult d;
         while(input.getDriftSoundcard(d)){ 
             viewer.pushDriftResult(d);
@@ -67,12 +66,14 @@ int main(int argc, char **argv)
         struct Result r;
         if(dsp.getResult(r))
             viewer.pushResult(r);
-        if(  input.soundcarddrift.execute() && input.soundcarddrift.getSize() > 3)
+        if(input.soundcarddrift.execute() && input.soundcarddrift.getSize() > 3)
         {   
             auto r = input.soundcarddrift.getResult(input.soundcarddrift.getSize(), CLOCK_TAI);
             viewer.pushDriftResult(r);
         }
+        viewer.vumeter.push_level(input.get_level());
         viewer.renderFrame();
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
     }
     input.stop();
     return 0;

@@ -13,7 +13,7 @@
 
 struct TimeStamp
 {
-    uint frame;
+    uint64_t frame;
     timespec clock_tai, clock_realtime, clock_monotonic;
 };
 

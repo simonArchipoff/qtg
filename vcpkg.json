@@ -19,6 +19,9 @@
       "name": "kissfft"
     },
     {
+      "name": "readerwriterqueue"
+    },
+    {
       "name": "rtaudio",
       "features": [ "alsa" ]
     }

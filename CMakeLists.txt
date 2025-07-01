@@ -15,14 +15,6 @@ add_compile_options(
   -Wextra -Wreorder
 )
 
-# Fetch moodycamel::readerwriterqueue
-FetchContent_Declare(
-    concurrentqueue
-    GIT_REPOSITORY https://github.com/cameron314/concurrentqueue.git
-    GIT_TAG        master
-)
-
-FetchContent_MakeAvailable(concurrentqueue)
 
 
 FetchContent_Declare(
@@ -45,11 +37,12 @@ target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
-
+find_package(readerwriterqueue CONFIG REQUIRED)
 find_package(kissfft CONFIG REQUIRED)
 find_package(RtAudio REQUIRED)
 find_package(imgui REQUIRED)
 find_package(implot REQUIRED)
+
 find_package(CLI11 REQUIRED)
 
 add_executable(qtg
@@ -65,5 +58,5 @@ find_package(OpenGL REQUIRED)
 #target_compile_definitions(qtg PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
 
 
-target_link_libraries(qtg PRIVATE glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio DSPFilters)
+target_link_libraries(qtg PRIVATE glfw OpenGL::GL imgui::imgui implot::implot RtAudio::rtaudio DSPFilters  readerwriterqueue::readerwriterqueue )
 target_link_libraries(qtg PRIVATE kissfft::kissfft-float CLI11::CLI11)
