@@ -4,10 +4,12 @@
 #include <ctime>
 #include <cstdint>
 #include <cassert>
+#include <readerwriterqueue.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include "CircularBuffer.h"
+#include <readerwritercircularbuffer.h>
 #include "Constants.h"
 
 struct TimeStamp
@@ -104,7 +106,7 @@ class DriftData
     size_t getSize() const { return circbuf.size(); }
 
     CircularBuffer<TimeStamp> circbuf;
-    moodycamel::ConcurrentQueue<TimeStamp> ts_queue;
+    moodycamel::ReaderWriterQueue<TimeStamp> ts_queue;
     int sampleRate;
     TimeStampCSVWriter log;
     int droped_value_init; // cold start problem
