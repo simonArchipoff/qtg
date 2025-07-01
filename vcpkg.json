@@ -23,7 +23,12 @@
     },
     {
       "name": "rtaudio",
-      "features": [ "alsa" ]
+      "features": [ "alsa" ],
+      "platform": "linux"
+    },
+    {
+      "name": "rtaudio",
+      "platform": "windows"
     }
   ]
 }

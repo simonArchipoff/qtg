@@ -9,7 +9,6 @@
 #include <fstream>
 #include "CircularBuffer.h"
 #include "Constants.h"
-#include "concurrentqueue.h"
 
 struct TimeStamp
 {
