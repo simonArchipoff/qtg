@@ -58,21 +58,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libxinerama-dev \
-          libxcursor-dev \
-          libxrandr-dev \
-          libxi-dev \
-          libx11-dev \
-          libglu1-mesa-dev \
-          libxext-dev \
-          pkg-config \
-          xinerama  \
-          xcursor \
-          xorg \
-          libglu1-mesa \
-          pkg-config \
-          autoconf \
-          libtool
+              libxinerama-dev \
+              libxcursor-dev \
+              libxrandr-dev \
+              libxi-dev \
+              libx11-dev \
+              libglu1-mesa-dev \
+              libxext-dev \
+              pkg-config \
+              autoconf \
+              libtool \
+              xorg-dev
+
 
     - name: Clone vcpkg
       run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
