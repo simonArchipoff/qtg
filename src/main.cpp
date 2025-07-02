@@ -69,7 +69,7 @@ int main(int argc, char **argv)
             viewer.pushResult(r);
         if(input.soundcarddrift.execute() && input.soundcarddrift.getSize() > 3)
         {   
-            auto r = input.soundcarddrift.getResult(input.soundcarddrift.getSize(), CLOCK_TAI);
+            auto r = input.soundcarddrift.getResult(input.soundcarddrift.getSize());
             viewer.pushDriftResult(r);
         }
         viewer.vumeter.push_level(input.get_level());
