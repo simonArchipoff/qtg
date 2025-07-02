@@ -233,9 +233,11 @@ DriftResult DriftData::getResult(size_t nb_points, int clock) const
         timespec system;
         switch (clock)
         {
+#ifdef CLOCK_TAI
         case CLOCK_TAI:
             system = t.clock_tai;
             break;
+#endif
         case CLOCK_REALTIME:
             system = t.clock_realtime;
             break;
