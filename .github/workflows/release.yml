@@ -21,6 +21,16 @@ jobs:
 
       - name: Install MinGW
         run: choco install mingw --no-progress
+      - name: Add MinGW to PATH
+        shell: pwsh
+        run: |
+          $mingwPath = "C:\tools\mingw64\bin"
+          Write-Host "##[add-path]$mingwPath"
+          $env:PATH = "$mingwPath;$env:PATH"
+      - name: Check gcc version and path
+        run: |
+          where gcc
+          gcc --version
 
       - name: Clone vcpkg
         run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
