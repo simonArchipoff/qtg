@@ -84,6 +84,8 @@ jobs:
       if: runner.os == 'Windows'
 
     - name: Install dependencies 
+      env:
+       VCPKG_DEFAULT_TRIPLET: x64-mingw-static
       run: ./vcpkg/vcpkg install
       if: runner.os != 'Windows'
 
