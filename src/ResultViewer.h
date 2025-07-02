@@ -1,5 +1,10 @@
 #pragma once
 
+// conflict with byte
+#ifdef _WIN32
+  #include <windows.h>
+#endif
+
 #include <optional>
 #include <vector>
 #include <imgui.h>
@@ -10,6 +15,7 @@
 #include <complex>
 #include <SoundCardDrift.h>
 #include <CircularBuffer.h>
+
 
 
 class VuMeter {
