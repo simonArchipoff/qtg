@@ -5,58 +5,134 @@ name: Build Windows Binary
 on:
   push:
     branches: ["main"]
-
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      # Set up a matrix to run the following 3 configurations:
+      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
+      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
+      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
+      #
+      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang]
+        include:
+          - os: windows-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            triplet: x64-mingw-static
+            generator: "MinGW Makefiles"
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            c_compiler: clang
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    
+    - name: Set variables
+      id: vars
+      shell: bash
+      run: |
+        echo "build_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+        echo "vcpkg_dir=${{ github.workspace }}/vcpkg" >> $GITHUB_OUTPUT
+    - name: Install system dependencies Linux
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+              libxinerama-dev \
+              libxcursor-dev \
+              libxrandr-dev \
+              libxi-dev \
+              libx11-dev \
+              libglu1-mesa-dev \
+              libxext-dev \
+              pkg-config \
+              autoconf \
+              libtool \
+              xorg-dev
 
-      - name: Install MinGW
-        run: choco install mingw --no-progress
-      - name: Set variables
-        id: vars
-        shell: bash
-        run: |
-          echo "build_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
-          echo "vcpkg_dir=${{ github.workspace }}/vcpkg" >> $GITHUB_OUTPUT
-      - name: Set environment
-        run: |
-          echo "CC=gcc" >> $env:GITHUB_ENV
-          echo "CXX=g++" >> $env:GITHUB_ENV
+    - name: Install MinGW (Windows)
+      if: runner.os == 'Windows'
+      run: choco install mingw --no-progress
+      
+    - name: Clone vcpkg
+      run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
 
-      - name: Clone vcpkg
-        run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
+    - name: Bootstrap vcpkg
+      run: ./vcpkg/bootstrap-vcpkg.sh
+      if: runner.os != 'Windows'
 
-      - name: Bootstrap vcpkg
-        run: ./vcpkg/bootstrap-vcpkg.sh
-        if: runner.os != 'Windows'
+    - name: Bootstrap vcpkg (Windows)
+      run: .\\vcpkg\\bootstrap-vcpkg.bat
+      if: runner.os == 'Windows'
 
-      - name: Bootstrap vcpkg (Windows)
-        run: .\\vcpkg\\bootstrap-vcpkg.bat
-        if: runner.os == 'Windows'
-      - name: Install dependencies [Windows]
-        run: .\\vcpkg\\vcpkg.exe install --triplet "x64-mingw-static"
-        if: runner.os == 'Windows'
+    - name: Install dependencies 
 
-      - name: Configure CMake
-        run: cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release `
-              -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake
+      run: ./vcpkg/vcpkg install
+      if: runner.os != 'Windows'
 
-      - name: Build
-        run: cmake --build build --config Release
+    - name: Install dependencies [Windows]
+      env:
+       VCPKG_DEFAULT_TRIPLET: x64-mingw-static
+      run: .\\vcpkg\\vcpkg.exe install --triplet ${{ matrix.triplet }}
+      if: runner.os == 'Windows'
 
-      - name: Package .exe
-        run: |
-          mkdir dist
-          copy build\qtg.exe dist\qtg.exe
-          powershell Compress-Archive dist\* qtg-windows.zip
+    - name: Set reusable strings
+      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      - name: Upload binary to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: qtg-windows.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Configure CMake (Linux)
+      shell: bash
+      if: runner.os == 'Linux'
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        cmake -B ${{ steps.vars.outputs.build_dir }} \
+         -S ${{ github.workspace }} \
+         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler  }} \
+         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+         -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake \
+         ${{ matrix.generator && format('-G "{0}"', matrix.generator) }} \
+         ${{ matrix.triplet && format('-DVCPKG_TARGET_TRIPLET={0}', matrix.triplet) }}
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cmake -B "${{ steps.vars.outputs.build_dir }}" `
+              -S "${{ github.workspace }}" `
+              -G "MinGW Makefiles" `
+              -DVCPKG_TARGET_TRIPLET=x64-mingw-static `
+              -DCMAKE_C_COMPILER="${{ matrix.c_compiler }}" `
+              -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" `
+              -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" `
+              -DCMAKE_TOOLCHAIN_FILE="${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake"
+
+
+    - name: Build
+      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest --build-config ${{ matrix.build_type }}
