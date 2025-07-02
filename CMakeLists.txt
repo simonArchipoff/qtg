@@ -15,7 +15,9 @@ add_compile_options(
   -Wextra -Wreorder
 )
 
-
+if (WIN32)
+  add_compile_definitions(RPC_NO_WINDOWS_H)
+endif()
 
 FetchContent_Declare(
     DSPFilters
