@@ -2,6 +2,7 @@
 
 // conflict with byte
 #ifdef _WIN32
+  #define RPC_NO_WINDOWS_H
   #include <windows.h>
 #endif
 
