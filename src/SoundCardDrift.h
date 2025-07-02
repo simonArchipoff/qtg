@@ -58,8 +58,8 @@ class TimeStampCSVWriter
 
 struct DriftResult
 {
-    uint sampleRate;           // Fréquence nominale (Hz)
-    uint numberPoints = 0;     // Nombre de points utilisés
+    unsigned int sampleRate;           // Fréquence nominale (Hz)
+    unsigned int numberPoints = 0;     // Nombre de points utilisés
     double dur_measures = 0.0; // Durée totale des mesures (en secondes)
 
     double drift_hz;   // Dérive absolue en Hz : fréquence réelle = sampleRate + delta

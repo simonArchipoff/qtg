@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
     app.add_option("-d,--device", selected_device_index, "Select input device by index");
     
-    uint sampleRate = 96000;
+    unsigned int sampleRate = 96000;
     app.add_option("-s,--sample-rate",sampleRate,"requested sampleRate");
 
     double compensation = 0.0;

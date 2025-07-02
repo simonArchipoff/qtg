@@ -45,11 +45,11 @@ bool QuartzDSPAsync::getResult(Result & r){
     out.resize(tmp.size());
     compute_fft_complex(tmp, out);
 
-    uint sr = config.sample_rate / config.decimation_factor;
+    unsigned int sr = config.sample_rate / config.decimation_factor;
     r.time = 1.0 * tmp.size() / sr;
     r.progress = 1.0 * circbuf.size() / circbuf.capacity();
     float f0 = sr / static_cast<float>(out.size());
-    for (uint i = 0; i < out.size() / 2; i++)
+    for (unsigned int i = 0; i < out.size() / 2; i++)
     {
         auto tmp = i * f0 + config.lo_freq;
         if (abs(tmp-config.target_freq) < config.bw_bandpass)
@@ -83,7 +83,7 @@ void QuartzDSP_rt::rt_process(vector<float> &input_block)
     lowpass_i.process(input_size, i_ptrs);
     lowpass_q.process(input_size, q_ptrs);
 
-    for (uint i = 0; i < input_size; i++)
+    for (unsigned int i = 0; i < input_size; i++)
     {
         if (phase_decim % config.decimation_factor == 0)
         {

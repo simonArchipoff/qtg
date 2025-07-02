@@ -14,17 +14,16 @@
 
 
 
-
 class RtAudioCaptureThread : public PeakDetector {
 public:
-    const uint sampleRate;
-    uint input_size;
+    const unsigned int sampleRate;
+    unsigned int input_size;
     QuartzDSP_rt & dsp;
     std::vector<float> internal_buffer;     
     RtAudioCaptureThread(QuartzDSP & dsp,
                         int inputDeviceId = -1,
-                        uint block_size=8 * 1024,
-                        uint number_channels=2
+                        unsigned int block_size=8 * 1024,
+                        unsigned int number_channels=2
                         )
          :PeakDetector(dsp.config.sample_rate,1),
          sampleRate(dsp.config.sample_rate),
