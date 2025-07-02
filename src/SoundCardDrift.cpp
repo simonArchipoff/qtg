@@ -4,45 +4,6 @@
 #include <cmath>
 const static uint64_t Giga = 1'000'000'000ull;
 
-void DriftEntry::init(uint64_t frame)
-{
-    this->init_ = true;
-    frame_init = frame;
-    clock_gettime(CLOCK_TAI, &init_ts);
-}
-
-void DriftEntry::update(unsigned long current_frame)
-{
-    frame_now = current_frame;
-    clock_gettime(CLOCK_TAI, &now_ts);
-}
-bool DriftEntry::initialized() const
-{
-    return init_;
-}
-bool DriftEntry::ready() const
-{
-    return initialized() && frame_now > frame_init;
-}
-
-// Calcule la divergence de fréquence entre init et now
-double DriftEntry::fps_diff(uint64_t baseframerate) const
-{
-    assert(ready());
-    int64_t seconds = now_ts.tv_sec - init_ts.tv_sec;
-    int64_t nanoseconds = now_ts.tv_nsec - init_ts.tv_nsec;
-    double elapsed_sec = seconds + nanoseconds / 1e9;
-    int64_t frames = frame_now - frame_init;
-    double numerator = frames - elapsed_sec * baseframerate;
-    assert(frames > 0);
-    assert(elapsed_sec > 0);
-
-    return numerator / elapsed_sec;
-
-    // return static_cast<double>(frames * Giga  - elapsed_nsec * baseframerate )
-    // / elapsed_nsec; // === (frame / elapsed_sec) - baseframerate
-}
-
 /*
   code chatgpt pour la reg. lin.
 
