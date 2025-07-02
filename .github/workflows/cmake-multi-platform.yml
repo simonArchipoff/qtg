@@ -98,8 +98,9 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Configure CMake
+    - name: Configure CMake (Linux)
       shell: bash
+      if: runner.os == 'Linux'
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
@@ -111,6 +112,18 @@ jobs:
          -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake \
          ${{ matrix.generator && format('-G "{0}"', matrix.generator) }} \
          ${{ matrix.triplet && format('-DVCPKG_TARGET_TRIPLET={0}', matrix.triplet) }}
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cmake -B "${{ steps.vars.outputs.build_dir }}" `
+              -S "${{ github.workspace }}" `
+              -DCMAKE_C_COMPILER="${{ matrix.c_compiler }}" `
+              -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" `
+              -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" `
+              -DCMAKE_TOOLCHAIN_FILE="${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake"
+
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
