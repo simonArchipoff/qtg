@@ -1,5 +1,6 @@
 name: Build Windows Release
-
+permissions:
+  contents: write
 
 on:
   push:
