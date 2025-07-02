@@ -89,7 +89,7 @@ std::ostream &operator<<(std::ostream &os, const LinearFitWithCI &fit)
 struct DriftAnalysisResult
 {
     double alpha;        // dérive relative (pente)
-    double stderr;       // erreur standard sur la pente
+    double alpha_stderr;       // erreur standard sur la pente
     double fps_estimate; // fps réel estimé
     double fps_ci_lower; // intervalle de confiance bas
     double fps_ci_upper; // intervalle de confiance haut
