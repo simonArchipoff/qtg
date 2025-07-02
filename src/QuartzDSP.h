@@ -4,7 +4,7 @@
 #include "Constants.h"
 #include <readerwriterqueue.h>
 #include <cstddef>
-#include <ResultSignal.h>
+#include "ResultSignal.h"
 #include "CircularBuffer.h"
 
 using namespace std;

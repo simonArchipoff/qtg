@@ -2,8 +2,7 @@ name: Build Windows Binary
 
 on:
   push:
-    tags:
-      - 'v*'  # ex: v1.0.0
+    branches: ["main"]
 
 jobs:
   build-windows:
@@ -32,7 +31,7 @@ jobs:
         run: .\\vcpkg\\bootstrap-vcpkg.bat
         if: runner.os == 'Windows'
       - name: Install dependencies [Windows]
-        run: .\\vcpkg\\vcpkg.exe install
+        run: .\\vcpkg\\vcpkg.exe install --triplet "x64-mingw-static"
         if: runner.os == 'Windows'
 
       - name: Configure CMake
