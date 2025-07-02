@@ -123,7 +123,7 @@ jobs:
         cmake -B "${{ steps.vars.outputs.build_dir }}" `
               -S "${{ github.workspace }}" `
               -G "MinGW Makefiles" `
-              -DVCPKG_TARGET_TRIPLET=x64-mingw-static
+              -DVCPKG_TARGET_TRIPLET=x64-mingw-static `
               -DCMAKE_C_COMPILER="${{ matrix.c_compiler }}" `
               -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}" `
               -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" `
