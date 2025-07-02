@@ -101,7 +101,13 @@ class DriftData
         return n;
     }
 
-    DriftResult getResult(size_t nb_points = 0, int clock = CLOCK_TAI) const;
+    DriftResult getResult(size_t nb_points = 0, int clock =
+#ifdef CLOCK_TAI
+        CLOCK_TAI
+#else
+        CLOCK_REALTIME
+#endif
+    ) const;
 
     size_t getSize() const { return circbuf.size(); }
 
