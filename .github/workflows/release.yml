@@ -1,0 +1,56 @@
+name: Build Windows Binary
+
+on:
+  push:
+    tags:
+      - 'v*'  # ex: v1.0.0
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MinGW
+        run: choco install mingw --no-progress
+
+      - name: Set environment
+        run: |
+          echo "CC=gcc" >> $env:GITHUB_ENV
+          echo "CXX=g++" >> $env:GITHUB_ENV
+
+      - name: Clone vcpkg
+        run: git clone https://github.com/microsoft/vcpkg.git ${{ steps.vars.outputs.vcpkg_dir }}
+
+      - name: Bootstrap vcpkg
+        run: ./vcpkg/bootstrap-vcpkg.sh
+        if: runner.os != 'Windows'
+
+      - name: Bootstrap vcpkg (Windows)
+        run: .\\vcpkg\\bootstrap-vcpkg.bat
+        if: runner.os == 'Windows'
+      - name: Install dependencies [Windows]
+        run: .\\vcpkg\\vcpkg.exe install
+        if: runner.os == 'Windows'
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release 
+              -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package .exe
+        run: |
+          mkdir dist
+          copy build\yourprogram.exe dist\yourprogram.exe
+          powershell Compress-Archive dist\* qtg-windows.zip
+
+      - name: Upload binary to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: qtg-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
