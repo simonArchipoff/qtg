@@ -16,7 +16,7 @@ add_compile_options(
 )
 
 if (WIN32)
-  add_compile_definitions(RPC_NO_WINDOWS_H)
+  add_compile_definitions(RPC_NO_WINDOWS_H WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
 FetchContent_Declare(
