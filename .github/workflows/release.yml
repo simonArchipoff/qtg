@@ -35,7 +35,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release 
+        run: cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release `
               -DCMAKE_TOOLCHAIN_FILE=${{ steps.vars.outputs.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake
 
       - name: Build
