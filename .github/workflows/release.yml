@@ -14,7 +14,12 @@ jobs:
 
       - name: Install MinGW
         run: choco install mingw --no-progress
-
+      - name: Set variables
+        id: vars
+        shell: bash
+        run: |
+          echo "build_dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+          echo "vcpkg_dir=${{ github.workspace }}/vcpkg" >> $GITHUB_OUTPUT
       - name: Set environment
         run: |
           echo "CC=gcc" >> $env:GITHUB_ENV
