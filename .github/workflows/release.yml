@@ -45,7 +45,7 @@ jobs:
       - name: Package .exe
         run: |
           mkdir dist
-          copy build\yourprogram.exe dist\yourprogram.exe
+          copy build\qtg.exe dist\qtg.exe
           powershell Compress-Archive dist\* qtg-windows.zip
 
       - name: Upload binary to Release
