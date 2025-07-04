@@ -3,6 +3,7 @@
 #include <readerwriterqueue.h>
 #include <rtaudio/RtAudio.h>
 #include <atomic>
+#include <stdexcept>
 #include <vector>
 #include <memory>
 #include "SoundCardDrift.h"
@@ -19,7 +20,7 @@ public:
     const unsigned int sampleRate;
     unsigned int input_size;
     QuartzDSP_rt & dsp;
-    std::vector<float> internal_buffer;     
+    std::vector<float> internal_buffer;
     RtAudioCaptureThread(QuartzDSP & dsp,
                         int inputDeviceId = -1,
                         unsigned int block_size=8 * 1024,
@@ -29,7 +30,7 @@ public:
          sampleRate(dsp.config.sample_rate),
          input_size(block_size),
          dsp(dsp.rt),
-         soundcarddrift(1024 * 32,sampleRate),
+         soundcarddrift(600),
          channels(number_channels),
          inputDeviceId(inputDeviceId),
          isRunning(false),
@@ -59,10 +60,13 @@ public:
 
         RtAudio::StreamOptions options;
         options.flags = RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_SCHEDULE_REALTIME ;
-
         audio->openStream(nullptr, &iParams, RTAUDIO_FLOAT32,
                         sampleRate, &this->input_size, &RtAudioCaptureThread::rtCallback, this, &options);
+        if(audio->getStreamSampleRate() != sampleRate){
+            throw std::runtime_error("problem opening the stream, maybe samplerate not available");
+        }
         internal_buffer.resize(input_size);
+        soundcarddrift.init(input_size,sampleRate);
         dsp.init(input_size);
         isRunning.store(true);
         audio->startStream();

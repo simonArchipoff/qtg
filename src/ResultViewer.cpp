@@ -123,13 +123,19 @@ void ResultViewer::renderFrame()
         {
             ImPlot::SetupAxes(
                 "second per month", "energy", ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
+            ImPlot::SetupAxis(ImAxis_Y2, "Phase (rad)", ImPlotAxisFlags_Opposite); // Axe à droite
+            ImPlot::SetupAxisLimits(ImAxis_Y2, -M_PI, M_PI, ImGuiCond_Once);  
             ImPlot::SetupAxisLimits(ImAxis_X1, -60, 60);
             //ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             auto spm = latestResult->sec_per_month_corrected();
             //latestResult->frequencies;
-            ImPlot::PlotLine("second per month", spm.data(), latestResult->magnitudes.data(),
-                (int)latestResult->frequencies.size());
-
+            ImPlot::SetAxis(ImAxis_Y1);
+            ImPlot::PlotLine("second per month", spm.data(), latestResult->magnitudes.data(), (int)latestResult->frequencies.size());
+            
+            //ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 0, 0, 255));
+            //ImPlot::SetAxis(ImAxis_Y2);
+            //ImPlot::PlotLine("Phase", spm.data(),   latestResult->phases.data(),    (int)latestResult->frequencies.size());
+            //ImPlot::PopStyleColor();
             ImPlot::EndPlot();
         }
     }

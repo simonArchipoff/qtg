@@ -72,6 +72,9 @@ class QuartzDSPAsync{
     bool getResult(Result &r);
     void reset(){
         circbuf.reset();
+        for(int i = 0; i < circbuf.capacity(); i++){
+            //circbuf.push_back(std::complex<float>(0,0));
+        }
     }
     
     CircularBuffer<std::complex<float>> circbuf;

@@ -4,7 +4,7 @@
 
 
 void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
-                         std::vector<std::complex<float>> &freq_data)
+                         std::vector<std::complex<float>> &freq_data, bool add_window=false)
 {
     size_t nfft = time_data.size();
     assert(freq_data.size() == nfft);
@@ -18,7 +18,8 @@ void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
 
     for (size_t i = 0; i < nfft; ++i)
     {
-        float w = 0.5f * (1.0f - std::cos(2.0f * M_PI * i / (nfft - 1)));
+        float w = add_window ? 0.5f * (1.0f - std::cos(2.0f * M_PI * i / (nfft - 1)))
+                             : 1.0;
         in[i].r = time_data[i].real() * w;
         in[i].i = time_data[i].imag() * w;
     }
@@ -57,6 +58,7 @@ bool QuartzDSPAsync::getResult(Result & r){
             r.frequencies.push_back(tmp);
             float energy_pos = std::norm(out[i]);
             r.magnitudes.push_back(energy_pos);
+            r.phases.push_back(std::arg(out[i]));
         }
     }
     return true;

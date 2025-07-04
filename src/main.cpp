@@ -1,7 +1,7 @@
 #include <CLI/CLI.hpp>
 #include <RtAudio.h>
-#include <ctime>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 #include <vector>
 #include <string>
@@ -11,13 +11,12 @@
 #include "AudioSourceThread.h"
 
 #include "CircularBuffer.h"
-#include "Constants.h"
 
 
 int main(int argc, char **argv)
 {
     CLI::App app{"qtg, a quartz watch timegrapher"};
-
+    QuartzDSPConfig c;
     bool list_devices = false;
     app.add_flag("-l,--list", list_devices, "List available input devices");
 
@@ -26,11 +25,27 @@ int main(int argc, char **argv)
 
     app.add_option("-d,--device", selected_device_index, "Select input device by index");
     
-    unsigned int sampleRate = 96000;
-    app.add_option("-s,--sample-rate",sampleRate,"requested sampleRate");
+    app.add_option("-s,--sample-rate",c.sample_rate,"requested sampleRate");
 
     double compensation = 0.0;
     app.add_option("-c,--compensation",compensation, "sound card compensation");
+
+    app.add_option("-f,--frequency",c.target_freq,"nominal frequency");
+    app.add_option("--decimation",c.decimation_factor,"decimation factor");
+    app.add_option("--local-oscillator",c.lo_freq,"lo frequency (slightly bellow the nominal frequency");
+    app.add_option("--bw-bandpass",c.bw_bandpass,"width arround the frequency to select");
+    app.add_option("--integration-time",c.duration_analysis_s, "integration time for a measure");
+    if(c.target_freq > c.sample_rate / 2.0){
+        throw std::runtime_error("samplerate to low for the nominal frequency");
+    }
+    if((c.target_freq - c.lo_freq) > (c.sample_rate / c.decimation_factor) / 2.0 ){
+        throw std::runtime_error("decimation to high for the difference between the frequency and the local oscillator frequency");
+    }
+    if(c.bw_bandpass > (c.target_freq - c.lo_freq)){
+        std::cerr << "maybe the bandpass width is too wide\nbut let's run anyway";
+    }
+
+
 
     CLI11_PARSE(app, argc, argv);
 
@@ -43,7 +58,6 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    QuartzDSPConfig c;
     QuartzDSP dsp(c);
     RtAudioCaptureThread input(dsp,selected_device_index,1024*16);
 

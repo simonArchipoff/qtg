@@ -81,8 +81,13 @@ struct DriftResult
 class DriftData
 {
   public:
-    DriftData(int n, int sampleRate) : circbuf(n), sampleRate(sampleRate), log("test.csv"), droped_value_init(3) {}
+    DriftData(double duration_s=600) : log("test.csv"), droped_value_init(3),duration_s(duration_s) {}
     void rt_insert_ts(uint64_t frame);
+
+    void init(size_t input_size, size_t sampleRate){
+        this->sampleRate = sampleRate;
+        circbuf.init( sampleRate * duration_s / input_size);
+    }
 
     bool execute()
     {
@@ -116,25 +121,8 @@ class DriftData
     int sampleRate;
     TimeStampCSVWriter log;
     int droped_value_init; // cold start problem
+    double duration_s;
 };
 
-struct DriftEntry
-{
-    int64_t frame_init;
-    timespec init_ts;
-    int64_t frame_now;
-    timespec now_ts;
-    bool init_ = false;
-    DriftEntry() : frame_init(0), frame_now(0), init_(false) {}
-
-    void init(uint64_t frame);
-
-    // Met à jour avec un nouveau frame et timestamp actuel
-    void update(unsigned long current_frame);
-    bool initialized() const;
-    bool ready() const;
-    // Calcule la divergence de fréquence entre init et now
-    double fps_diff(uint64_t baseframerate) const;
-};
 
 std::ostream &operator<<(std::ostream &os, const DriftResult &result);

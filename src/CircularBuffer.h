@@ -11,6 +11,14 @@ public:
         : capacity_(capacity), buffer_(capacity), head_(0), size_(0)
     {
     }
+    CircularBuffer():CircularBuffer(10){}
+
+    void init(size_t n){
+        buffer_.resize(n);
+        capacity_ = n;
+        head_ = 0;
+        size_ = 0;
+    }
 
     // Ajoute des données à la fin du buffer (concaténation)
     void push_back(const std::vector<T> &data)
