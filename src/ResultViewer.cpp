@@ -123,8 +123,8 @@ void ResultViewer::renderFrame()
         {
             ImPlot::SetupAxes(
                 "second per month", "energy", ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
-            ImPlot::SetupAxis(ImAxis_Y2, "Phase (rad)", ImPlotAxisFlags_Opposite); // Axe à droite
-            ImPlot::SetupAxisLimits(ImAxis_Y2, -M_PI, M_PI, ImGuiCond_Once);  
+            //ImPlot::SetupAxis(ImAxis_Y2, "Phase (rad)", ImPlotAxisFlags_Opposite); // Axe à droite
+            //ImPlot::SetupAxisLimits(ImAxis_Y2, -M_PI, M_PI, ImGuiCond_Once);  
             ImPlot::SetupAxisLimits(ImAxis_X1, -60, 60);
             //ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
             auto spm = latestResult->sec_per_month_corrected();

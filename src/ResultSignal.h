@@ -8,6 +8,7 @@ struct Result{
     std::vector<double> frequencies;
     double time;
     double progress= 0.0;
+    double nominal_frequency;
     double getProgressPercent(){
         return progress * 100;
     }
@@ -24,7 +25,7 @@ struct Result{
     std::vector<double> sec_per_month() const {
         std::vector<double> res(frequencies.size());
         for(unsigned long i = 0 ; i < res.size(); i++){
-            res[i] = ((frequencies[i] - Constants::QUARTZ_FREQUENCY) * Constants::SECONDS_PER_MONTH) / Constants::QUARTZ_FREQUENCY; 
+            res[i] = ((frequencies[i] - nominal_frequency) * Constants::SECONDS_PER_MONTH) / nominal_frequency; 
         }
         return res;
     }

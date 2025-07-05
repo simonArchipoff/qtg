@@ -40,6 +40,7 @@ bool QuartzDSPAsync::getResult(Result & r){
     }
     Result tmp_r;
     r = tmp_r;
+    r.nominal_frequency = config.target_freq;
     std::vector<complex<float>> tmp;
     circbuf.get_ordered(tmp);
     std::vector<complex<float>> out;

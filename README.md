@@ -73,7 +73,8 @@ cmake --build build --config Release
 ## Todo:
 
 * Better (nicer) UI
+  - be able to change unit (sec per day, sec per month, hz, ppm)
 * Optimization of DSP (currently a lot of spurious computation is done)
-  - switch to window correlation instead of fft
+  - switch to windowed correlation instead of fft
   - add phase drift to the computation for more precise result
-* Tweak it to timegraph some tuning fork watches as well
+* tweak it be able to use the envelope instead of bare signal frequency, then it will work with mecanical watches
