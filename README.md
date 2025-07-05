@@ -9,10 +9,13 @@ what you need :
 
 ![screenshot](doc/casio_a168_qtg.png)
 
+
+I suspect this software might work for other "weird" watches : tuning fork, Seiko's spring drive (by listening to its train gear if the quartz dont work), weird frequency quartz watches (as long as it's under the soundcard's nyquist frequency).
+
 ## How does it work
 
-As one might guess, the sound produced by a watch's quartz is very faint, you cannot detect it easily. This program use a bit of DSP magic to remove the noise and detect it.
-This frequency is computed using the soundcard's clock, which is not perfect either. This program implement a soundcard frequency monitoring using the system's clock.
+As one might guess, the sound produced by a watch's quartz is very faint, you cannot detect it easily. This program use a bit of DSP magic to remove the noise and detect the quartz's signal.
+This signal's frequency is measured using the soundcard's clock, which is not perfect either. This program implement a soundcard frequency monitoring using the system's clock.
 In summary :
 1. Compare the watch's internal clock to the soundcard's clock
 2. Compare the soundcard's clock to the systems clock
@@ -24,7 +27,7 @@ Concretely, the DSP pipeline is as follow :
 watch -> microphone/soundcard -> bandpass around 32768Hz -> mixing by oscillator at 32760Hz -> low pass -> downsampling by a factor 4000 or such -> compute which frequency around 8hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
 
 regarding the soundcard :
-timestamp each new buffer and compute it's actual frequency using the system's clock using linear regression. There is a rolling buffer to only consider the last data.
+timestamp each new buffer and compute it's actual frequency using the system's clock using linear regression. There is a rolling buffer to only consider the more recent data.
 
 
 ## How good it is ?
@@ -63,7 +66,7 @@ cmake --build build --config Release
 ```
 
 ## usage:
-`qtg` start the program with the default soundcard
+`qtg` start the program with the default soundcard and settings
 `qtg -l` give the list of the sound interfaces available on your system and their ID
 
 `qtg -d ID` start the program with the soundcard indexed by ID.
@@ -77,4 +80,4 @@ cmake --build build --config Release
 * Optimization of DSP (currently a lot of spurious computation is done)
   - switch to windowed correlation instead of fft
   - add phase drift to the computation for more precise result
-* tweak it be able to use the envelope instead of bare signal frequency, then it will work with mecanical watches
+* tweak it be able to use the envelope instead of bare signal, then it will work with mecanical watches.
