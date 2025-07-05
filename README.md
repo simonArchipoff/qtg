@@ -68,7 +68,7 @@ cmake --build build --config Release
 
 `qtg -d ID` start the program with the soundcard indexed by ID.
 
-`qtg --help` for other options
+`qtg --help` for other options, including internal parameters.
 
 ## Todo:
 
