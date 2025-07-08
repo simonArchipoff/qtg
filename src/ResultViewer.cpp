@@ -9,7 +9,7 @@ ResultViewer::ResultViewer()
 {
     if (!glfwInit())
         throw std::runtime_error("Failed to init GLFW");
-    window = glfwCreateWindow(800, 600, "Result Viewer", nullptr, nullptr);
+    window = glfwCreateWindow(800, 600, "qtg", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();

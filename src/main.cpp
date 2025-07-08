@@ -13,7 +13,7 @@
 #include "CircularBuffer.h"
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     CLI::App app{"qtg, a quartz watch timegrapher"};
     QuartzDSPConfig c;
@@ -35,7 +35,12 @@ int main(int argc, char **argv)
     app.add_option("--local-oscillator",c.lo_freq,"lo frequency (slightly bellow the nominal frequency");
     app.add_option("--bw-bandpass",c.bw_bandpass,"width arround the frequency to select");
     app.add_option("--integration-time",c.duration_analysis_s, "integration time for a measure");
-    if(c.target_freq > c.sample_rate / 2.0){
+
+
+
+    CLI11_PARSE(app, argc, argv);
+
+    if(c.target_freq > (c.sample_rate / 2.0)){
         throw std::runtime_error("samplerate to low for the nominal frequency");
     }
     if((c.target_freq - c.lo_freq) > (c.sample_rate / c.decimation_factor) / 2.0 ){
@@ -44,11 +49,6 @@ int main(int argc, char **argv)
     if(c.bw_bandpass > (c.target_freq - c.lo_freq)){
         std::cerr << "maybe the bandpass width is too wide\nbut let's run anyway";
     }
-
-
-
-    CLI11_PARSE(app, argc, argv);
-
 
     if(list_devices){
         auto devices = RtAudioCaptureThread::listInputDevices();
