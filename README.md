@@ -34,6 +34,16 @@ timestamp each new buffer and compute it's actual frequency using the system's c
 ## How good it is ?
 I dont know… it mostly depends on the soundcard's clock stability.
 It should be better than ±1sec/month with standard hardware and good condition (stable temperature and low load).
+You can check the state of synchronisation with ntp. Here on my computer with about 3 hours of uptime. 0.100ppm of skew is about 0.25sec/month bound on error.
+
+```
+% chronyc tracking
+...
+Frequency       : 8.272 ppm fast
+Residual freq   : -0.003 ppm
+Skew            : 0.100 ppm
+...
+```
 
 ## compilation
 
