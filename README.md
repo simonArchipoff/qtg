@@ -4,12 +4,13 @@ This software is a time grapher for quartz watches. It uses a standard soundcard
 
 what you need :
 * A soundcard with a sample rate of 96000Hz minimum
-* A microphone with a reasonably good with ultrasound (any electret should do)
+* A microphone reasonably good with ultrasound (any electret should do)
 * A very good system clock (the result cannot be better than your computer's clock), NTP is highly recommanded
 
 ![screenshot](doc/casio_a168_qtg.png)
 
 
+/!\ Most modern quartz watch uses an inhibition system, their quartz run too fast on purpose and a factory configured circuit drop the proper amount of cycle to compensate. This software is better suitted for old-school adjustable quartz watches.
 I suspect this software might work for other "weird" watches : tuning fork, Seiko's spring drive (by listening to its train gear if the quartz dont work), weird frequency quartz watches (as long as it's under the soundcard's nyquist frequency).
 
 ## How does it work
@@ -77,6 +78,7 @@ cmake --build build --config Release
 
 * Better (nicer) UI
   - be able to change unit (sec per day, sec per month, hz, ppm)
+  - integrate the system's clock uncertainty in the interface
 * Optimization of DSP (currently a lot of spurious computation is done)
   - switch to windowed correlation instead of fft
   - add phase drift to the computation for more precise result
