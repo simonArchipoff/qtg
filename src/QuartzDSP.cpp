@@ -51,15 +51,16 @@ bool QuartzDSPAsync::getResult(Result & r){
     r.time = 1.0 * tmp.size() / sr;
     r.progress = 1.0 * circbuf.size() / circbuf.capacity();
     float f0 = sr / static_cast<float>(out.size());
-    for (unsigned int i = 0; i < out.size() / 2; i++)
+    for (int i = -(out.size() / 2); i < static_cast<int>((out.size() / 2)); i++)
     {
         auto tmp = i * f0 + config.lo_freq;
         if (abs(tmp-config.target_freq) < config.bw_bandpass)
         {
             r.frequencies.push_back(tmp);
-            float energy_pos = std::norm(out[i]);
+            auto p = (i+out.size()) % out.size();
+            float energy_pos = std::norm(out[p]);
             r.magnitudes.push_back(energy_pos);
-            r.phases.push_back(std::arg(out[i]));
+            r.phases.push_back(std::arg(out[p]));
         }
     }
     return true;

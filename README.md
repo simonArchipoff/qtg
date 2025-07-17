@@ -24,7 +24,7 @@ In summary :
 The system's clock being very good on the long run we can use it to evaluate the drift of the soundcard's one, and then the first.
 
 Concretely, the DSP pipeline is as follow :
-watch -> microphone/soundcard -> bandpass around 32768Hz -> mixing by oscillator at 32760Hz -> low pass -> downsampling by a factor 4000 or such -> compute which frequency around 8hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
+watch -> microphone/soundcard -> bandpass around 32768Hz -> mixing by oscillator at 32768Hz (in the soundcard's time) -> low pass -> downsampling by a factor 32000 or such -> compute which frequency around 0hz has the most energy -> apply soundcard compensation to find the actual "physical" frequency
 
 regarding the soundcard :
 timestamp each new buffer and compute it's actual frequency using the system's clock using linear regression. There is a rolling buffer to only consider the more recent data.

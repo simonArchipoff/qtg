@@ -11,10 +11,10 @@ using namespace std;
 
 struct QuartzDSPConfig {
     double target_freq = Constants::QUARTZ_FREQUENCY; 
-    int lo_freq = Constants::QUARTZ_FREQUENCY - 8;  
+    int lo_freq = Constants::QUARTZ_FREQUENCY;  
     double bw_bandpass = 6;
     unsigned int sample_rate = 96000;
-    unsigned int decimation_factor = 4000;
+    unsigned int decimation_factor = 32000;
     double duration_analysis_s = 180;
 };
 
