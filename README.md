@@ -93,3 +93,4 @@ cmake --build build --config Release
   - switch to windowed correlation instead of fft
   - add phase drift to the computation for more precise result
 * tweak it be able to use the envelope instead of bare signal, then it will work with mecanical watches.
+* offer the possibility to "timegraph" on several channels at once, I think it would be great to be able to monitor simultaniously the 1hz of the second hand and the quartz to show inhibition. But for a descently quick evaluation of the 1hz frequency we first need to implement phase drift computation.
