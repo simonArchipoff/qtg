@@ -38,19 +38,21 @@ bool QuartzDSPAsync::getResult(Result & r){
     if(circbuf.size() < 1){
         return false;
     }
+    const double sample_rate_ratio = real_sr / config.sample_rate;
     Result tmp_r;
     r = tmp_r;
     r.nominal_frequency = config.target_freq;
+    r.real_frequency = config.target_freq / sample_rate_ratio;
     std::vector<complex<float>> tmp;
     circbuf.get_ordered(tmp);
     std::vector<complex<float>> out;
     out.resize(tmp.size());
     compute_fft_complex(tmp, out);
 
-    unsigned int sr = config.sample_rate / config.decimation_factor;
+    double sr = real_sr / config.decimation_factor;
     r.time = 1.0 * tmp.size() / sr;
     r.progress = 1.0 * circbuf.size() / circbuf.capacity();
-    float f0 = sr / static_cast<float>(out.size());
+    double f0 = sr / static_cast<float>(out.size());
     for (int i = -(out.size() / 2); i < static_cast<int>((out.size() / 2)); i++)
     {
         auto tmp = i * f0 + config.lo_freq;

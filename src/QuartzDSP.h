@@ -63,7 +63,7 @@ class QuartzDSPAsync{
     const struct QuartzDSPConfig & config;
     QuartzDSPAsync(QuartzDSPConfig & c)
     :config(c)
-    ,circbuf(c.duration_analysis_s * c.sample_rate / c.decimation_factor)
+    ,circbuf(c.duration_analysis_s * c.sample_rate / c.decimation_factor),real_sr(c.sample_rate)
     {}
 
     inline void push(std::complex<float> & o ){
@@ -72,11 +72,11 @@ class QuartzDSPAsync{
     bool getResult(Result &r);
     void reset(){
         circbuf.reset();
-        for(int i = 0; i < circbuf.capacity(); i++){
+        //for(uint i = 0; i < circbuf.capacity(); i++){
             //circbuf.push_back(std::complex<float>(0,0));
-        }
+        //}
     }
-    
+    double real_sr = 0.0;
     CircularBuffer<std::complex<float>> circbuf;
 };
 
@@ -84,7 +84,6 @@ class QuartzDSPAsync{
 class QuartzDSP {
     public:
     struct QuartzDSPConfig config;
-    double compensation=0.0;
     QuartzDSP(QuartzDSPConfig &c)
         :config(c)
         ,rt(c)
@@ -96,15 +95,14 @@ class QuartzDSP {
     bool getResult(Result&r){
         runAsync();
         auto res = async.getResult(r);
-        r.correction_spm = compensation;
         return res;
     }
 
     void reset(){
         async.reset();
     }
-    void setCompensation(double compensation){
-        this->compensation = compensation;
+    void setRealSR(double sr){
+        this->async.real_sr = sr;
     }
 
     void runAsync(){

@@ -23,7 +23,7 @@ public:
     std::vector<float> internal_buffer;
     RtAudioCaptureThread(QuartzDSP & dsp,
                         int inputDeviceId = -1,
-                        unsigned int block_size=8 * 1024,
+                        unsigned int block_size=64 * 1024,
                         unsigned int number_channels=2
                         )
          :PeakDetector(dsp.config.sample_rate,1),

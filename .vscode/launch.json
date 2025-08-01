@@ -7,8 +7,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/qtg",
       "args": ["-d", "131"
-              , "--sample-rate","96000"
-              , "-c", "6"],
+              , "--sample-rate","96000"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

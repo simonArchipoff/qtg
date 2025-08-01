@@ -37,7 +37,7 @@ private:
 
 class ResultViewer {
 public:
-    ResultViewer();
+    ResultViewer(Unit u);
     ~ResultViewer();
 
     void renderFrame();
@@ -55,6 +55,7 @@ public:
     std::function<void(double)> onIntegrationTime = [&](double){abort();};
     std::function<void(double)> onApplyCorrection = [&](double){abort();};
 private:
+    enum Unit unit;
     GLFWwindow* window = nullptr;
     std::optional<Result> latestResult;
     std::vector<std::complex<float>> raw_data;

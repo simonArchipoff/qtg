@@ -5,12 +5,15 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include "CLI/CLI.hpp"
 #include "QuartzDSP.h"
 #include "ResultViewer.h"
 
 #include "AudioSourceThread.h"
 
 #include "CircularBuffer.h"
+
+
 
 
 int main(int argc, char *argv[])
@@ -27,16 +30,21 @@ int main(int argc, char *argv[])
     
     app.add_option("-s,--sample-rate",c.sample_rate,"requested sampleRate");
 
-    double compensation = 0.0;
-    app.add_option("-c,--compensation",compensation, "sound card compensation");
-
     app.add_option("-f,--frequency",c.target_freq,"nominal frequency");
+    c.lo_freq = c.target_freq;
     app.add_option("--decimation",c.decimation_factor,"decimation factor");
     app.add_option("--local-oscillator",c.lo_freq,"lo frequency (slightly bellow the nominal frequency");
     app.add_option("--bw-bandpass",c.bw_bandpass,"width arround the frequency to select");
     app.add_option("--integration-time",c.duration_analysis_s, "integration time for a measure");
-
-
+    enum Unit unit = Unit::Second_Per_Day;
+    std::map<std::string, Unit> map{
+            {"hertz",             Unit::Hertz},
+            {"s/day",            Unit::Second_Per_Day},
+            {"s/month",          Unit::Second_Per_Month},
+            {"s/year",           Unit::Second_Per_Year},
+            {"ppm",              Unit::PPM}};
+    app.add_option("--unit", unit, "Unité de mesure")
+        ->transform(CLI::CheckedTransformer(map,CLI::ignore_case).description(CLI::detail::generate_map(CLI::detail::smart_deref(map), true)));
 
     CLI11_PARSE(app, argc, argv);
 
@@ -64,9 +72,9 @@ int main(int argc, char *argv[])
     
     assert(input.getSampleRate() == 192000 || input.getSampleRate() == 96000);
 
-    ResultViewer viewer;
+    ResultViewer viewer(unit);
     viewer.onReset = [&dsp](){dsp.reset();};
-    viewer.onApplyCorrection =[&dsp](double v){dsp.setCompensation(v);};
+    viewer.onApplyCorrection =[&dsp](double v){dsp.setRealSR(v);};
     input.start();
     while (!viewer.shouldClose())
     {

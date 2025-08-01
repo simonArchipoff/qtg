@@ -1,12 +1,14 @@
 #include "ResultViewer.h"
+#include "ResultSignal.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <implot.h>
 
-ResultViewer::ResultViewer()
+ResultViewer::ResultViewer(Unit u)
 {
+    unit = u;
     if (!glfwInit())
         throw std::runtime_error("Failed to init GLFW");
     window = glfwCreateWindow(800, 600, "qtg", nullptr, nullptr);
@@ -112,25 +114,26 @@ void ResultViewer::renderFrame()
         {
             if (drift)
             {
-                onApplyCorrection(drift->get_spm());
+                onApplyCorrection(drift->get_fps_estimated());
             }
         }
-        ImGui::SameLine();
-        ImGui::Text("Compensation %.2f spm", latestResult->correction_spm);
+        //ImGui::SameLine();
+        //ImGui::Text("Compensation %.2f spm", latestResult->correction_spm);
         ImVec2 size = ImGui::GetContentRegionAvail();
         // Le plot ImPlot
         if (ImPlot::BeginPlot("energy vs drift", size, ImPlotFlags_NoLegend))
         {
+            std::string xlabel = latestResult->unit_string(unit);
             ImPlot::SetupAxes(
-                "second per month", "energy", ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
+                xlabel.c_str(), "energy", ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
             //ImPlot::SetupAxis(ImAxis_Y2, "Phase (rad)", ImPlotAxisFlags_Opposite); // Axe à droite
             //ImPlot::SetupAxisLimits(ImAxis_Y2, -M_PI, M_PI, ImGuiCond_Once);  
             ImPlot::SetupAxisLimits(ImAxis_X1, -60, 60);
             //ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
-            auto spm = latestResult->sec_per_month_corrected();
+            auto spm = latestResult->result_unit(unit);
             //latestResult->frequencies;
             ImPlot::SetAxis(ImAxis_Y1);
-            ImPlot::PlotLine("second per month", spm.data(), latestResult->magnitudes.data(), (int)latestResult->frequencies.size());
+            ImPlot::PlotLine(to_string(unit).c_str(), spm.data(), latestResult->magnitudes.data(), (int)latestResult->frequencies.size());
             
             //ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 0, 0, 255));
             //ImPlot::SetAxis(ImAxis_Y2);
