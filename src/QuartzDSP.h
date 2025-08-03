@@ -63,7 +63,8 @@ class QuartzDSPAsync{
     const struct QuartzDSPConfig & config;
     QuartzDSPAsync(QuartzDSPConfig & c)
     :config(c)
-    ,circbuf(c.duration_analysis_s * c.sample_rate / c.decimation_factor),real_sr(c.sample_rate)
+    ,real_sr(c.sample_rate)
+    ,circbuf(c.duration_analysis_s * c.sample_rate / c.decimation_factor)
     {}
 
     inline void push(std::complex<float> & o ){
@@ -91,11 +92,17 @@ class QuartzDSP {
     {}
     QuartzDSP_rt rt;
     QuartzDSPAsync async;
+    bool new_data=false;
 
     bool getResult(Result&r){
         runAsync();
-        auto res = async.getResult(r);
-        return res;
+        if(new_data)
+        { 
+            auto res = async.getResult(r);
+            new_data = false;
+            return res;
+        }
+        return false;
     }
 
     void reset(){
@@ -104,11 +111,11 @@ class QuartzDSP {
     void setRealSR(double sr){
         this->async.real_sr = sr;
     }
-
     void runAsync(){
         std::complex<float> o;
         while(rt.getOut(o)){
             async.push(o);
+            new_data = true;
         }
     }
 };

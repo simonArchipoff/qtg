@@ -69,7 +69,7 @@ public:
         return out;
     }
     const T& operator[](int idx) const {
-        assert(idx <= 0 || -idx < size_);
+        assert(idx <= 0 || -idx < (int) size_);
         int64_t pos = static_cast<int64_t>(head_) - 1 + idx;
         while (pos < 0) pos += capacity_;
         return buffer_[pos % capacity_];
@@ -80,6 +80,6 @@ public:
 private:
     size_t capacity_;
     std::vector<T> buffer_;
-    size_t head_; // position d'écriture
-    size_t size_; // nb éléments valides
+    size_t head_;
+    size_t size_;
 };

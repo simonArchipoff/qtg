@@ -49,6 +49,7 @@ find_package(implot CONFIG REQUIRED)
 find_package(CLI11 REQUIRED)
 
 set(QTG_SOURCES
+    src/AudioSourceThread.cpp
     src/ResultViewer.cpp
     src/SoundCardDrift.cpp
     src/QuartzDSP.cpp

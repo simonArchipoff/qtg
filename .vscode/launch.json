@@ -6,8 +6,9 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/qtg",
-      "args": ["-d", "131"
-              , "--sample-rate","96000"],
+      "args": ["-d", "132"
+              , "--sample-rate","96000"
+              ,"--local-oscillator","32768"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
