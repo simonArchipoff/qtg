@@ -29,7 +29,7 @@ inline std::ostream &operator<<(std::ostream &os, const Unit &u)
     case Unit::PPM:
         return os << "ppm";
     }
-    return os << "unknown";
+    throw std::invalid_argument("invalid unit")
 }
 
 inline std::string to_string(Unit u)
@@ -133,7 +133,7 @@ struct Result
             ss << "Frequency offset from " << nominal_frequency << "Hz (ppm)";
             break;
         default:
-            throw std::invalid_argument("Unité non supportée");
+            throw std::invalid_argument("unit invalid");
         }
         return ss.str();
     }
