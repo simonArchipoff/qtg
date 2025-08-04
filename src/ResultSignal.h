@@ -29,7 +29,7 @@ inline std::ostream &operator<<(std::ostream &os, const Unit &u)
     case Unit::PPM:
         return os << "ppm";
     }
-    throw std::invalid_argument("invalid unit")
+    throw std::invalid_argument("invalid unit");
 }
 
 inline std::string to_string(Unit u)
@@ -107,7 +107,7 @@ struct Result
         case Unit::PPM:
             return ppm();
         default:
-            throw std::invalid_argument("Unité non supportée");
+            throw std::invalid_argument("unit invalid");
         }
     }
 
