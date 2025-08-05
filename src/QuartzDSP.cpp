@@ -84,10 +84,8 @@ void QuartzDSP_rt::rt_process(vector<float> &input_block)
         tmp_buff_i[i] = c * input_block[i];
         tmp_buff_q[i] = s * input_block[i];
     }
-    float *i_ptrs[1] = {tmp_buff_i.data()};
-    float *q_ptrs[1] = {tmp_buff_q.data()};
-    lowpass_i.process(input_size, i_ptrs);
-    lowpass_q.process(input_size, q_ptrs);
+    float *c[]= {tmp_buff_i.data(),tmp_buff_q.data()};
+    lowpass.process(input_size, c);
 
     for (unsigned int i = 0; i < input_size; i++)
     {

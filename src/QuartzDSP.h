@@ -27,7 +27,7 @@ private:
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;
     Dsp::SimpleFilter<Dsp::Butterworth::BandPass<8>, 1> bandpass;
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 1> lowpass_i,lowpass_q;
+    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
     public:
@@ -42,8 +42,7 @@ private:
         auto bw_bandpass = config.bw_bandpass;
         bandpass.setup(8,sample_rate,target_freq,bw_bandpass);
         auto fc = sample_rate / (2.0 * decimation_factor);
-        lowpass_i.setup(4,sample_rate, fc);
-        lowpass_q.setup(4,sample_rate, fc);
+        lowpass.setup(4,sample_rate, fc);
     }
     
     void init(std::size_t input_size){
