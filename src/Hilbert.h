@@ -32,6 +32,7 @@ class Hilbert{
         float * c[] = {output_r,output_i};
         lowpass.process(size,c); // remove the negative frequencies
 
+        // demodulate, values are 1, -i, -1, i, ...
         for(std::size_t i = 0; i < size; i+= 4){
             //output_r[i+0] = output_r[i+0]; // * 1
             //output_i[i+0] = output_i[i+0];
