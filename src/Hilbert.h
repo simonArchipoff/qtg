@@ -47,7 +47,4 @@ class Hilbert{
             output_i[i+3] =  output_r[i+3];
         }
     }
-
-
-
 };

@@ -13,9 +13,6 @@
 
 #include "CircularBuffer.h"
 
-
-
-
 int main(int argc, char *argv[])
 {
     CLI::App app{"qtg, a quartz watch timegrapher"};

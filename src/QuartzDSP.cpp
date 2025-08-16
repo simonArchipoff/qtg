@@ -3,8 +3,9 @@
 #include <kiss_fft.h>
 
 
-void compute_fft_complex(const std::vector<std::complex<float>> &time_data,
-                         std::vector<std::complex<float>> &freq_data, bool add_window=false)
+void compute_fft_complex(const std::vector<std::complex<float>> &time_data
+                         ,std::vector<std::complex<float>> &freq_data
+                         ,bool add_window=false)
 {
     size_t nfft = time_data.size();
     assert(freq_data.size() == nfft);
@@ -75,7 +76,7 @@ void QuartzDSP_rt::rt_process(vector<float> &input_block)
     for (size_t i = 0; i < input_size; ++i)
     {
         auto f = frame++ % config.sample_rate;
-        ;
+
         auto t = static_cast<double>(f) / static_cast<double>(config.sample_rate);
         auto phase = -2 * M_PI * config.lo_freq * t;
         double c, s;
