@@ -34,3 +34,4 @@ imgui.ini
 *.app
 
 build/*
+vcpkg_installed

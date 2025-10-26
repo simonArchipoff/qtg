@@ -29,6 +29,9 @@
     {
       "name": "rtaudio",
       "platform": "windows"
+    },
+    {
+      "name":"matajoh-libnpy"
     }
   ]
 }

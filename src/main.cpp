@@ -10,6 +10,7 @@
 #include "ResultViewer.h"
 
 #include "AudioSourceThread.h"
+#include "FilterBank.h"
 
 #include "CircularBuffer.h"
 

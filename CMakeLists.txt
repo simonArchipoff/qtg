@@ -61,11 +61,11 @@ find_package(OpenGL REQUIRED)
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
+
 add_executable(qtg
     src/main.cpp
     ${QTG_SOURCES}
 )
-
 target_include_directories(qtg PRIVATE ${QTG_INCLUDES})
 target_link_libraries(qtg PRIVATE
     glfw OpenGL::GL
@@ -76,3 +76,10 @@ target_link_libraries(qtg PRIVATE
     kissfft::kissfft-float
     CLI11::CLI11
 )
+
+
+
+find_package(npy CONFIG REQUIRED)
+add_executable(quick_gen_data src/quick_gen_data.cpp )
+target_include_directories(quick_gen_data PRIVATE ${QTG_INCLUDES})
+target_link_libraries(quick_gen_data PRIVATE npy::npy)
