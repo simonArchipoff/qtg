@@ -4,13 +4,13 @@
 #include "FilterBank.h"
 int f(){
     const int sr = 48000;
-    const int nbfreq = 20;
+    const int nbfreq = 2;
     std::vector<size_t> shape({nbfreq,100*sr});
-    npy::tensor<double> t(shape);
+    npy::tensor<float> t(shape);
 
     vector<double> f;
     for(int i = 0; i < nbfreq; i++){
-        f.push_back(10.0+i/10.0);
+        f.push_back(20000.0+i/100.0);
     }
     SinGenBank foo(f,sr);
     for(uint i = 0; i < shape[1]; i++){
@@ -24,11 +24,11 @@ int f(){
     return 0;
 }
 
-int main(){
+int g(){
     const int sr = 10;
     const int nbfreq2=7;
     const double frequency = 2;
-    std::vector<size_t> shape({2*nbfreq2 + 1,1000*sr,2});
+    std::vector<size_t> shape({2*nbfreq2 + 1,10000*sr,2});
     npy::tensor<double> t(shape);
     SinGenBank gen({frequency + 0.005},sr);
     vector<double> f;
@@ -38,7 +38,7 @@ int main(){
     }
 
 
-    FilterBank foo(f,sr,3);
+    FilterBank foo(f,sr,100);
     for(uint i = 0; i < shape[1]; i++){
         vector<complex<double>> tmp = {gen.get(0)};
         foo.process(tmp);
@@ -52,4 +52,8 @@ int main(){
     }
     t.save("state.npy");
     return 0;
+}
+
+int main(){
+    return f();
 }

@@ -17,17 +17,6 @@ stds = data.std(axis=1)
 print("Amplitude moyenne par fréquence :", means)
 print("Écart-type par fréquence :", stds)
 
-# --- Visualisation ---
-# 1. Tracer quelques sinusoïdes dans le temps
-plt.figure(figsize=(10, 6))
-t = np.arange(nframes) / 48000.0  # échelle en secondes
-for i in range( min(5,nbfreq)):
-    plt.plot(t[:48000], data[i, :48000], label=f"freq {i}")
-plt.xlabel("Temps (s)")
-plt.ylabel("Amplitude")
-plt.title("Extraits des 5 premières sinusoïdes")
-plt.legend()
-plt.tight_layout()
 
 # 2. Spectre moyen pour vérifier les fréquences
 plt.figure(figsize=(10, 6))

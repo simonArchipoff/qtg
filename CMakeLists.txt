@@ -61,11 +61,8 @@ find_package(OpenGL REQUIRED)
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
-
-add_executable(qtg
-    src/main.cpp
-    ${QTG_SOURCES}
-)
+if(°)
+add_executable(qtg src/main.cpp ${QTG_SOURCES} )
 target_include_directories(qtg PRIVATE ${QTG_INCLUDES})
 target_link_libraries(qtg PRIVATE
     glfw OpenGL::GL
@@ -76,10 +73,23 @@ target_link_libraries(qtg PRIVATE
     kissfft::kissfft-float
     CLI11::CLI11
 )
-
+endif()
 
 
 find_package(npy CONFIG REQUIRED)
-add_executable(quick_gen_data src/quick_gen_data.cpp )
-target_include_directories(quick_gen_data PRIVATE ${QTG_INCLUDES})
+add_executable(quick_gen_data tests/test_discrete_bank.cpp )
+target_include_directories(quick_gen_data PRIVATE include)
 target_link_libraries(quick_gen_data PRIVATE npy::npy)
+
+
+find_package(Catch2 REQUIRED)
+add_executable(test
+    tests/test_timeseriephase.cpp
+)
+target_include_directories(test PRIVATE include)
+
+# Link with our library and Catch2
+target_link_libraries(test 
+    PRIVATE 
+    Catch2::Catch2WithMain
+)
