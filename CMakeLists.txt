@@ -3,12 +3,16 @@ project(qtg LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
+#set(CMAKE_BUILD_TYPE Profile CACHE STRING "Profiling build" FORCE)
 
 # Options communes pour tous les builds (à adapter)
 add_compile_options(
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Release>:-fno-fast-math> #fastmath breaks it, dont know why, let's not use it
     -Wextra -Wreorder
+    $<$<CONFIG:Profile>:-O2>
+    $<$<CONFIG:Profile>:-g>
+    $<$<CONFIG:Profile>:-pg>
 )
 
 
@@ -38,7 +42,7 @@ add_library(DSPFilters STATIC
     ${DSPFILTERS_SOURCE_FILES}
     ${DSPFILTERS_HEADER_FILES}
 )
-target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include)
+target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include include)
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
@@ -61,7 +65,7 @@ find_package(OpenGL REQUIRED)
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
-if(°)
+if(1)
 add_executable(qtg src/main.cpp ${QTG_SOURCES} )
 target_include_directories(qtg PRIVATE ${QTG_INCLUDES})
 target_link_libraries(qtg PRIVATE
@@ -93,3 +97,10 @@ target_link_libraries(test
     PRIVATE 
     Catch2::Catch2WithMain
 )
+
+
+add_executable(benchmarks benchmarks/benchmark_filter_bank.cpp src/QuartzDSP.cpp)
+target_include_directories(benchmarks PRIVATE include src)
+target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters     readerwriterqueue::readerwriterqueue     kissfft::kissfft-float)
+#target_compile_options(benchmarks PRIVATE )
+target_link_options(benchmarks PRIVATE $<$<CONFIG:Profile>:-pg>)

@@ -75,6 +75,43 @@ struct GenerationFunctionSin : GeneratorFunction
     }
 };
 
+
+
+struct GenerationFunctionSinLRU
+{
+    static constexpr size_t TABLE_SIZE = 64;
+    
+    // Table statique simple
+    static std::complex<float> table[TABLE_SIZE];
+
+    std::complex<float> get(float phase)
+    {
+        // Ramener la phase à un index simple
+        int index = int(phase * TABLE_SIZE / (2.0f * M_PI)) & (TABLE_SIZE - 1);
+        return table[index];
+    }
+};
+
+// Définition de la table (pré-calculée)
+std::complex<float> GenerationFunctionSinLRU::table[GenerationFunctionSinLRU::TABLE_SIZE] = {
+    {1.0f, 0.0f},{0.995184f, 0.0980171f},{0.980785f, 0.19509f},{0.95694f, 0.290285f},
+    {0.92388f, 0.382683f},{0.881921f, 0.471397f},{0.83147f, 0.55557f},{0.77301f, 0.634393f},
+    {0.707107f, 0.707107f},{0.634393f, 0.77301f},{0.55557f, 0.83147f},{0.471397f, 0.881921f},
+    {0.382683f, 0.92388f},{0.290285f, 0.95694f},{0.19509f, 0.980785f},{0.0980171f, 0.995184f},
+    {0.0f, 1.0f},{-0.0980171f, 0.995184f},{-0.19509f, 0.980785f},{-0.290285f, 0.95694f},
+    {-0.382683f, 0.92388f},{-0.471397f, 0.881921f},{-0.55557f, 0.83147f},{-0.634393f, 0.77301f},
+    {-0.707107f, 0.707107f},{-0.77301f, 0.634393f},{-0.83147f, 0.55557f},{-0.881921f, 0.471397f},
+    {-0.92388f, 0.382683f},{-0.95694f, 0.290285f},{-0.980785f, 0.19509f},{-0.995184f, 0.0980171f},
+    {-1.0f, 0.0f},{-0.995184f, -0.0980171f},{-0.980785f, -0.19509f},{-0.95694f, -0.290285f},
+    {-0.92388f, -0.382683f},{-0.881921f, -0.471397f},{-0.83147f, -0.55557f},{-0.77301f, -0.634393f},
+    {-0.707107f, -0.707107f},{-0.634393f, -0.77301f},{-0.55557f, -0.83147f},{-0.471397f, -0.881921f},
+    {-0.382683f, -0.92388f},{-0.290285f, -0.95694f},{-0.19509f, -0.980785f},{-0.0980171f, -0.995184f},
+    {0.0f, -1.0f},{0.0980171f, -0.995184f},{0.19509f, -0.980785f},{0.290285f, -0.95694f},
+    {0.382683f, -0.92388f},{0.471397f, -0.881921f},{0.55557f, -0.83147f},{0.634393f, -0.77301f},
+    {0.707107f, -0.707107f},{0.77301f, -0.634393f},{0.83147f, -0.55557f},{0.881921f, -0.471397f},
+    {0.92388f, -0.382683f},{0.95694f, -0.290285f},{0.980785f, -0.19509f},{0.995184f, -0.0980171f}
+};
+
 struct TimeSeriePhase
 {
     std::deque<size_t> frames;
@@ -164,7 +201,8 @@ struct FilterBankDiscrete
             for (uint j = 0; j < periods.size(); j++)
             {
                 float f = periods[j].getPhase(frame);
-                auto c = GenerationFunctionSin().get(f * 2 * M_PI);
+                auto c = GenerationFunctionSinLRU().get(f * 2 * M_PI);
+                
                 state[j] = state[j] * std::complex<float>(one_pole_b, 0) +
                     c * static_cast<std::complex<float>>(v[i] * one_pole_a);
             }
