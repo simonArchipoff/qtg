@@ -150,7 +150,7 @@ struct FilterBankDiscrete
             periods.push_back({period_start + i * b / static_cast<float>(number - 1)});
         }
         state.resize(number,{0,0});
-        one_pole_b = std::exp(-2.0 * M_PI * alpha / b );
+        one_pole_b = std::powf(0.5,b * alpha);
         one_pole_a = 1.0 - one_pole_b;
     }
 
