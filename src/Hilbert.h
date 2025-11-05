@@ -2,7 +2,7 @@
 #include <Butterworth.h>
 #include <cstddef>
 #include <cassert>
-class Hilbert{
+struct Hilbert{
     unsigned int sr;
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
     Hilbert(unsigned int sampleRate):sr(sampleRate)
@@ -14,6 +14,9 @@ class Hilbert{
 
     void process(std::size_t size, float * input,  float * output_r, float * output_i){
         assert(size % 4 == 0);
+        
+        //TODO : try write this as a single loop to perform one pass instead of 3
+
         // modulate by complex sin at sr/4, values are 1, i, -1, -i
         for(std::size_t i = 0; i < size; i+=4){
             output_r[i+0] = input[i+0];  // * 1

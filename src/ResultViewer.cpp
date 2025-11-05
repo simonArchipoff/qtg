@@ -41,7 +41,7 @@ ResultViewer::~ResultViewer()
     }
 }
 
-void ResultViewer::pushResult(Result result)
+void ResultViewerQuartz::pushResult(Result result)
 {
     latestResult.emplace(result);
 }
@@ -52,7 +52,7 @@ bool ResultViewer::shouldClose() const
 void ResultViewer::pushRawData(std::vector<std::complex<float>> &c)
 {
     //std::optional<std::vector<float>>;
-    raw_data = c;
+    //raw_data = c;
 }
 
 void ResultViewer::renderFrame()
@@ -101,6 +101,15 @@ void ResultViewer::renderFrame()
 
     }
 
+    displayResult();
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(window);
+}
+void ResultViewerQuartz::displayResult(){
+
     if (latestResult)
     {
         if (ImGui::Button("Restart integration"))
@@ -110,13 +119,7 @@ void ResultViewer::renderFrame()
         ImGui::SameLine();
         ImGui::Text(
             "Time: %.2fs Progress: %.2f%%", latestResult->time, latestResult->getProgressPercent());
-        if (ImGui::Button("Apply current drift Compensation"))
-        {
-            if (drift)
-            {
-                onApplyCorrection(drift->get_fps_estimated());
-            }
-        }
+
         //ImGui::SameLine();
         //ImGui::Text("Compensation %.2f spm", latestResult->correction_spm);
         ImVec2 size = ImGui::GetContentRegionAvail();
@@ -146,10 +149,19 @@ void ResultViewer::renderFrame()
     {
         ImGui::Text("Waiting for data");
     }
+}
 
-    ImGui::End();
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwSwapBuffers(window);
+
+void ResultViewerMeca::displayResult(){
+    ImVec2 size = ImGui::GetContentRegionAvail();
+    ImPlot::SetNextAxesToFit(); // ajuste automatiquement X et Y
+    if (ImPlot::BeginPlot("titre plot", size, ImPlotFlags_NoLegend))
+    {
+        //ImPlot::SetupAxes( "", "amplitude", ImPlotAxisFlags_Opposite, ImPlotAxisFlags_AutoFit);
+        ImPlot::SetAxis(ImAxis_Y1);
+        auto r = circ.get_ordered();
+        ImPlot::PlotLine("unit",  r.data(), r.size());
+        ImPlot::EndPlot();
+    }
 }

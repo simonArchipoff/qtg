@@ -24,7 +24,7 @@ TEST_CASE("Benchmark comparison") {
     BENCHMARK("qtg") {
         Result r;
         bool b;
-        for(int i = 0; i < s.size(); i++){
+        for(size_t i = 0; i < s.size(); i++){
             qtg.rt.rt_process(s[i]);
             b = qtg.getResult(r);
         }
@@ -37,7 +37,7 @@ TEST_CASE("Benchmark comparison") {
 
     BENCHMARK("filter_bank") {
 
-        for(int i = 0; i < s.size(); i++){
+        for(size_t i = 0; i < s.size(); i++){
             filter.process(s[i]);
         }
 

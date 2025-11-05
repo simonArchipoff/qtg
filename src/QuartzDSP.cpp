@@ -2,6 +2,7 @@
 #include "QuartzDSP.h"
 #include <kiss_fft.h>
 
+using std::complex, std::vector;
 
 void compute_fft_complex(const std::vector<std::complex<float>> &time_data
                          ,std::vector<std::complex<float>> &freq_data
@@ -68,7 +69,7 @@ bool QuartzDSPAsync::getResult(Result & r){
     }
     return true;
 }
-void QuartzDSP_rt::rt_process(vector<float> &input_block)
+void QuartzDSP_rt::rt_process(std::vector<float> &input_block)
 {
     auto tmp = input_block.data();
     auto input_size = input_block.size();
@@ -92,8 +93,7 @@ void QuartzDSP_rt::rt_process(vector<float> &input_block)
     {
         if (phase_decim % config.decimation_factor == 0)
         {
-            auto out = std::complex<float>(
-                tmp_buff_i[i], tmp_buff_q[i]);
+            auto out = std::complex<float>(tmp_buff_i[i], tmp_buff_q[i]);
             outputQueue.enqueue(out);
         }
         phase_decim++; // todo optimize that

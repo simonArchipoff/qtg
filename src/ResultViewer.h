@@ -41,7 +41,6 @@ public:
     ~ResultViewer();
 
     void renderFrame();
-    void pushResult(Result result);
     void pushDriftResult(DriftResult drift){
         this->drift = drift;
     }
@@ -49,19 +48,49 @@ public:
     void setCurrentIntegration(double d){
         currentIntegrationPart = d;
     }
-    
+    virtual void displayResult() = 0;
     bool shouldClose() const;
     std::function<void()> onReset = [&](){};
     std::function<void(double)> onIntegrationTime = [&](double){abort();};
     std::function<void(double)> onApplyCorrection = [&](double){abort();};
-private:
+protected:
     enum Unit unit;
     GLFWwindow* window = nullptr;
-    std::optional<Result> latestResult;
-    std::vector<std::complex<float>> raw_data;
+
     std::optional<DriftResult> drift;
     double currentIntegrationPart = 0.0;
     void processQueue();
 public:
     VuMeter vumeter;
+};
+
+
+class ResultViewerQuartz : public ResultViewer {
+    public:
+    ResultViewerQuartz(Unit u):ResultViewer(u){};
+    void displayResult() override;
+    void pushResult(Result result);
+    protected:
+    std::optional<Result> latestResult;
+    std::vector<std::complex<float>> raw_data;
+
+};
+
+
+#include "MecaDSP.h"
+
+class ResultViewerMeca : public ResultViewer{
+    public:
+    ResultViewerMeca(Unit u):ResultViewer(u),circ(2048){}
+
+
+    void pushResult(MecaDSPResult & r){
+        mecaresult = r;
+        circ.push_back(r.newSamples);
+    }
+    void displayResult() override;
+
+    MecaDSPResult mecaresult;
+    CircularBuffer<float> circ;
+
 };

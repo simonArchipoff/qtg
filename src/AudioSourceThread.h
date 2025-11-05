@@ -9,17 +9,16 @@
 #include "PeakDetector.h"
 #include <readerwriterqueue.h>
 
-#include "QuartzDSP.h"
-
+#include <DSPModule_rt.h>
 
 
 class RtAudioCaptureThread : public PeakDetector {
 public:
     const unsigned int sampleRate;
     unsigned int input_size;
-    QuartzDSP_rt & dsp;
+    DSPModule_rt & dsp;
     std::vector<float> internal_buffer;
-    RtAudioCaptureThread(QuartzDSP &dsp, int inputDeviceId = -1,
+    RtAudioCaptureThread(DSPModule_rt &dsp, int inputDeviceId = -1,
         unsigned int block_size = 64 * 1024, unsigned int number_channels = 2);
 
     ~RtAudioCaptureThread() {

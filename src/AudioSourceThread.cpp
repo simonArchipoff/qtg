@@ -121,9 +121,9 @@ int RtAudioCaptureThread::rtCallback(void *outputBuffer, void *inputBuffer, unsi
     return 0;
 }
 RtAudioCaptureThread::RtAudioCaptureThread(
-    QuartzDSP &dsp, int inputDeviceId, unsigned int block_size, unsigned int number_channels)
-    : PeakDetector(dsp.config.sample_rate, 1), sampleRate(dsp.config.sample_rate),
-      input_size(block_size), dsp(dsp.rt), soundcarddrift(600), channels(number_channels),
+    DSPModule_rt &dsp, int inputDeviceId, unsigned int block_size, unsigned int number_channels)
+    : PeakDetector(dsp.sampleRate(), 1), sampleRate(dsp.sampleRate()),
+      input_size(block_size), dsp(dsp), soundcarddrift(600), channels(number_channels),
       inputDeviceId(inputDeviceId), isRunning(false), audio(nullptr)
 {
 }

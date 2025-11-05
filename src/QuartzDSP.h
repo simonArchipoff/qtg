@@ -7,7 +7,7 @@
 #include "ResultSignal.h"
 #include "CircularBuffer.h"
 
-using namespace std;
+#include <DSPModule_rt.h>
 
 struct QuartzDSPConfig {
     double target_freq = Constants::QUARTZ_FREQUENCY; 
@@ -18,7 +18,7 @@ struct QuartzDSPConfig {
     double duration_analysis_s = 180;
 };
 
-class QuartzDSP_rt {
+class QuartzDSP_rt : public DSPModule_rt{
 private:
     const struct QuartzDSPConfig & config;
     unsigned long frame;
@@ -45,16 +45,19 @@ private:
         lowpass.setup(4,sample_rate, fc);
     }
     
-    void init(std::size_t input_size){
+    void init(std::size_t input_size) override{
         tmp_buff_i.resize(input_size);
         tmp_buff_q.resize(input_size);
+    }
+    size_t sampleRate() const override{
+        return config.sample_rate;
     }
 
     inline bool getOut(std::complex<float>&o){
         return outputQueue.try_dequeue(o);
     }
 
-    void rt_process(vector<float> &input_block);
+    void rt_process(std::vector<float> &input_block) override;
 };
 
 class QuartzDSPAsync{

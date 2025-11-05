@@ -42,7 +42,7 @@ add_library(DSPFilters STATIC
     ${DSPFILTERS_SOURCE_FILES}
     ${DSPFILTERS_HEADER_FILES}
 )
-target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include include)
+target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include)
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
@@ -65,19 +65,21 @@ find_package(OpenGL REQUIRED)
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
-if(1)
+add_library(libqtg ${QTG_SOURCES})
+target_include_directories(libqtg PUBLIC include)
+target_link_libraries(libqtg PUBLIC RtAudio::rtaudio
+    DSPFilters
+    readerwriterqueue::readerwriterqueue
+    kissfft::kissfft-float)
+
 add_executable(qtg src/main.cpp ${QTG_SOURCES} )
-target_include_directories(qtg PRIVATE ${QTG_INCLUDES})
+target_include_directories(qtg PRIVATE ${QTG_INCLUDES} include)
 target_link_libraries(qtg PRIVATE
     glfw OpenGL::GL
     imgui::imgui implot::implot
-    RtAudio::rtaudio
-    DSPFilters
-    readerwriterqueue::readerwriterqueue
-    kissfft::kissfft-float
+    libqtg
     CLI11::CLI11
 )
-endif()
 
 
 find_package(npy CONFIG REQUIRED)
@@ -90,12 +92,13 @@ find_package(Catch2 REQUIRED)
 add_executable(test
     tests/test_timeseriephase.cpp
 )
-target_include_directories(test PRIVATE include)
+target_link_libraries(test PUBLIC libqtg)
 
 # Link with our library and Catch2
 target_link_libraries(test 
     PRIVATE 
     Catch2::Catch2WithMain
+    libqtg
 )
 
 
