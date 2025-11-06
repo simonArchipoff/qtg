@@ -154,6 +154,7 @@ void ResultViewerQuartz::displayResult(){
 
 
 void ResultViewerMeca::displayResult(){
+    /*
     ImVec2 size = ImGui::GetContentRegionAvail();
     ImPlot::SetNextAxesToFit(); // ajuste automatiquement X et Y
     if (ImPlot::BeginPlot("titre plot", size, ImPlotFlags_NoLegend))
@@ -164,4 +165,8 @@ void ResultViewerMeca::displayResult(){
         ImPlot::PlotLine("unit",  r.data(), r.size());
         ImPlot::EndPlot();
     }
+        */
+    ImVec2 size = ImGui::GetContentRegionAvail();
+
+    chrono.DrawMatrixTexture(size);
 }
