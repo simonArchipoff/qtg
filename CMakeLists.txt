@@ -91,6 +91,7 @@ target_link_libraries(quick_gen_data PRIVATE npy::npy)
 find_package(Catch2 REQUIRED)
 add_executable(test
     tests/test_timeseriephase.cpp
+    tests/test_FrequencyMeasurement.cpp
 )
 target_link_libraries(test PUBLIC libqtg)
 

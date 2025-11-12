@@ -15,7 +15,7 @@ struct MecaDSPConfig
 {
     float low_pass_cut = 48;
     float high_pass_cut = 0.001;
-    unsigned int decimation_factor = 1000;
+    unsigned int decimation_factor = 500;
     unsigned int sample_rate = 96000;
 };
 

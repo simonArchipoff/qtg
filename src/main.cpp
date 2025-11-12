@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
         }
         viewer.vumeter.push_level(input.get_level());
         viewer.renderFrame();
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     input.stop();
     return 0;

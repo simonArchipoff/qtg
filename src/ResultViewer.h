@@ -77,13 +77,13 @@ struct Chronogram
 
     Chronogram(uint sampleRate, int freq, int duration)
         : tex_height(sampleRate * duration / freq), tex_width(sampleRate / freq),
-          data(tex_width * tex_height, 0.0f), size(0), tmp(tex_width)
+          data(tex_width * tex_height, 0.0f), size(0), tmp(0)
     {
         glGenTextures(1, &texture_id);
         glBindTexture(GL_TEXTURE_2D, texture_id);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(
@@ -92,9 +92,6 @@ struct Chronogram
         {
             i = 0.0;
         }
-        for (int y = 0; y < tex_height; ++y)
-            for (int x = 0; x < tex_width; ++x)
-                data[y * tex_width + x] = (float)x / tex_width;
         UpdateTexture();
     }
     ~Chronogram()
@@ -123,13 +120,12 @@ struct Chronogram
         {
             while (tmp.size() < tex_width && i < r.size())
             {
-                tmp.push_back(r[i++]);
+                tmp.push_back((r[i++]));
             }
             if(tmp.size() == tex_width)
                 addLine();
         }
         UpdateTexture();
-
     }
 
   private:
@@ -147,6 +143,13 @@ struct Chronogram
         std::memcpy(data.data() + size, tmp.data(), tmp.size() * sizeof(tmp[0]));
         size += tmp.size();
         tmp.resize(0);
+
+        auto m = *std::max_element(data.data(), data.data()+size);
+        if(m == 0.0)
+          return;
+        for(int i = 0; i < size; i++){
+          data[i] /= m;
+        }
     }
 
   public:
@@ -163,7 +166,7 @@ struct Chronogram
         //ImGui::Text("Matrice de données (flux)");
         assert(texture_id);
         ImGui::Image(
-            (ImTextureID)(intptr_t)texture_id, ImVec2(512, 512), ImVec2(0, 0), ImVec2(1, 1));
+            (ImTextureID)(intptr_t)texture_id, size/*ImVec2(10*tex_width,10*tex_height)*/, ImVec2(0, 0), ImVec2(1, 1));
     }
 };
 
@@ -172,7 +175,7 @@ struct Chronogram
 class ResultViewerMeca : public ResultViewer
 {
   public:
-    ResultViewerMeca(Unit u) : ResultViewer(u), circ(2048), chrono(192, 3, 1) {}
+    ResultViewerMeca(Unit u) : ResultViewer(u), circ(2048), chrono(192, 7, 1) {}
 
     void pushResult(MecaDSPResult &r)
     {

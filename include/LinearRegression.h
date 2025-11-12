@@ -78,6 +78,7 @@ static double get_t_critical_95(int dof)
     if (index < 0) index = 0;
     return t_table[index];
 }
+
 static LinearFitResult linear_regression(const std::vector<double> &x, const std::vector<double> &y)
 {
     assert(x.size() == y.size());
