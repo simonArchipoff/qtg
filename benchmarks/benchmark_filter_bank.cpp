@@ -7,7 +7,7 @@
 #include <FilterBankDiscrete.h>
 
 TEST_CASE("Benchmark comparison") {
-    QuartzDSPConfig c;
+    FrequencyCounterConfig c;
     QuartzDSP qtg(c);
 
     auto N = 512;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Butterworth.h>
+#include "Hilbert.h"
 #include "Constants.h"
 #include <readerwriterqueue.h>
 #include <cstddef>
@@ -8,8 +9,11 @@
 #include "CircularBuffer.h"
 
 #include <DSPModule_rt.h>
+#include <FrequencyMeasurement.h>
 
-struct QuartzDSPConfig {
+struct FrequencyCounterConfig {
+    bool hilbert_shape_preprocessing = false;
+
     double target_freq = Constants::QUARTZ_FREQUENCY; 
     int lo_freq = Constants::QUARTZ_FREQUENCY;  
     double bw_bandpass = 6;
@@ -18,9 +22,12 @@ struct QuartzDSPConfig {
     double duration_analysis_s = 180;
 };
 
-class QuartzDSP_rt : public DSPModule_rt{
+class FrequencyCounter_rt : public DSPModule_rt{
 private:
-    const struct QuartzDSPConfig & config;
+    const struct FrequencyCounterConfig & config;
+
+    Hilbert hilbert;
+
     unsigned long frame;
     unsigned long phase_decim;
 
@@ -31,8 +38,8 @@ private:
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
     public:
-    QuartzDSP_rt(QuartzDSPConfig & c)
-            :config(c)
+    FrequencyCounter_rt(FrequencyCounterConfig & c)
+            :config(c),hilbert(c.sample_rate)
     {
         frame = 0;
         phase_decim = 0;
@@ -60,40 +67,40 @@ private:
     void rt_process(std::vector<float> &input_block) override;
 };
 
-class QuartzDSPAsync{
+class FrequencyCounterDSPAsync{
     public:
-    const struct QuartzDSPConfig & config;
-    QuartzDSPAsync(QuartzDSPConfig & c)
+    const struct FrequencyCounterConfig & config;
+    FrequencyMeasurement freq_measurement;
+    FrequencyCounterDSPAsync(FrequencyCounterConfig & c)
     :config(c)
     ,real_sr(c.sample_rate)
-    ,circbuf(c.duration_analysis_s * c.sample_rate / c.decimation_factor)
-    {}
+    {
+        freq_measurement.init(512,512); // todo find smart values
+    }
 
     inline void push(std::complex<float> & o ){
-        this->circbuf.push_back(o);
+        freq_measurement.addSamples({o});
     }
-    bool getResult(Result &r);
+    bool getResult(Result &r){
+        
+    }
     void reset(){
-        circbuf.reset();
-        //for(uint i = 0; i < circbuf.capacity(); i++){
-            //circbuf.push_back(std::complex<float>(0,0));
-        //}
+        freq_measurement.reset();
     }
     double real_sr = 0.0;
-    CircularBuffer<std::complex<float>> circbuf;
 };
 
 
-class QuartzDSP {
+class FrequencyCounterDSP {
     public:
-    struct QuartzDSPConfig config;
-    QuartzDSP(QuartzDSPConfig &c)
+    struct FrequencyCounterConfig config;
+    FrequencyCounterDSP(FrequencyCounterConfig &c)
         :config(c)
         ,rt(c)
         ,async(c)
     {}
-    QuartzDSP_rt rt;
-    QuartzDSPAsync async;
+    FrequencyCounter_rt rt;
+    FrequencyCounterDSPAsync async;
     bool new_data=false;
 
     bool getResult(Result&r){

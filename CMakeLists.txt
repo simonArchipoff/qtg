@@ -54,9 +54,8 @@ find_package(CLI11 REQUIRED)
 
 set(QTG_SOURCES
     src/AudioSourceThread.cpp
-    src/ResultViewer.cpp
     src/SoundCardDrift.cpp
-    src/QuartzDSP.cpp
+    src/FrequencyCounter.cpp
 )
 
 
@@ -102,9 +101,10 @@ target_link_libraries(test
     libqtg
 )
 
-
+if(0)
 add_executable(benchmarks benchmarks/benchmark_filter_bank.cpp src/QuartzDSP.cpp)
 target_include_directories(benchmarks PRIVATE include src)
 target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters     readerwriterqueue::readerwriterqueue     kissfft::kissfft-float)
 #target_compile_options(benchmarks PRIVATE )
 target_link_options(benchmarks PRIVATE $<$<CONFIG:Profile>:-pg>)
+endif()

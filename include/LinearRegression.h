@@ -1,4 +1,4 @@
-
+#pragma once
 #include <vector>
 #include <cstddef>
 #include <iomanip>
@@ -40,7 +40,7 @@ struct LinearFitWithCI
     double alpha_ci;
 };
 
-std::ostream &operator<<(std::ostream &os, const LinearFitWithCI &fit)
+inline std::ostream &operator<<(std::ostream &os, const LinearFitWithCI &fit)
 {
     os << std::fixed << std::setprecision(10); // Affichage avec 10 décimales
     os << "Pente (alpha)       : " << fit.alpha << "\n"

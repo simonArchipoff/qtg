@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <deque>
 #include <complex>
@@ -7,7 +9,7 @@
 #include "CircularBuffer.h"
 #include "LinearRegression.h"
 
-kiss_fft_cpx to_kiss(const float &v)
+inline kiss_fft_cpx to_kiss(const float &v)
 {
     kiss_fft_cpx c{};
     c.r = static_cast<float>(v);
@@ -15,7 +17,7 @@ kiss_fft_cpx to_kiss(const float &v)
     return c;
 }
 
-kiss_fft_cpx to_kiss(const std::complex<float> &v)
+inline kiss_fft_cpx to_kiss(const std::complex<float> &v)
 {
     kiss_fft_cpx c{};
     c.r = static_cast<float>(std::real(v));
@@ -46,7 +48,7 @@ inline void unwrapPhases(std::vector<T> &phase)
     }
 }
 
-std::vector<double> getSNR(const std::vector<double>& magnitude) {
+inline std::vector<double> getSNR(const std::vector<double>& magnitude) {
     size_t N = magnitude.size();
     if (N == 0) return {};
 
@@ -92,6 +94,23 @@ inline struct PhaseDriftResult getPhaseDriftResult(double sampleRate, const std:
     return r;
 }
 
+inline double getFrequencyNormBin(int bin, int N){
+    const double Nd = static_cast<double>(N);
+    if (bin < N / 2){
+        return static_cast<double>(bin)/ Nd;
+    }else{
+        return (static_cast<double>(bin)-static_cast<double>(N))/ Nd;
+    }
+}
+inline double getPeriodBin(int bin, int N){
+    const double Nd = static_cast<double>(N);
+    if (bin < N / 2){
+        return Nd/static_cast<double>(bin);
+    }else{
+        return Nd/(static_cast<double>(bin)-static_cast<double>(N));
+    }
+}
+
 
 class FrequencyMeasurement
 {
@@ -118,6 +137,11 @@ class FrequencyMeasurement
         circ.init(block_size);
         frame = 0;
         this->period = period;
+    }
+
+    void reset(){
+        circ.reset();
+        history.resize(0);
     }
 
     void addFFT()
@@ -153,19 +177,34 @@ class FrequencyMeasurement
             }
         }
     }
+    void addSamples(const std::vector<std::complex<float>> & samples){
+        addSamples(samples.begin(),samples.end());
+    }
     //todo : use complex phasor?
-    void getPhases(int idx, std::vector<size_t> &time, std::vector<float> &phases)
+    void getPhases(uint idx, std::vector<size_t> &time, std::vector<float> &phases)
     {
         assert(circ.size() > idx);
-        time.resize(0);
+        assert(history.size()>0);
+        time.clear();
         time.reserve(history.size());
-        phases.resize(0);
+        phases.clear();
         phases.reserve(history.size());
-
+        double period = ::getPeriodBin(idx,circ.size());
         for (const auto &i : history)
         {
+            double phaseRef = 2*M_PI * (i.first / period);
+            phaseRef = std::fmod(phaseRef, 2*M_PI);
             time.push_back(i.first);
-            phases.push_back(kiss_phase(i.second.at(idx)));
+            auto p = kiss_phase(i.second.at(idx));
+            auto diff = p - phaseRef;
+            
+            while(diff > M_PI){
+                diff -= 2 * M_PI;
+            } 
+            while(diff < -M_PI){
+                diff += 2*M_PI;
+            }
+            phases.push_back(diff);//std::fmod(diff,2*M_PI));
         }
     }
 
@@ -176,13 +215,7 @@ class FrequencyMeasurement
         const size_t N = v.size();
         const double Nd = static_cast<double>(N);
         for (size_t i = 0; i < v.size(); i++){
-            double f;
-            if (i < N / 2){
-                f = static_cast<double>(i) * sampleRate / Nd;
-            }else{
-                f = (static_cast<double>(i)-static_cast<double>(N)) * sampleRate / Nd;
-            }
-            frequencies[i] = f;
+            frequencies[i] = ::getFrequencyNormBin(i,N) * sampleRate;
         }
         return frequencies;
     }

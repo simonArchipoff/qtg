@@ -5,8 +5,8 @@
 #include <atomic>
 #include <vector>
 #include <memory>
-#include "SoundCardDrift.h"
-#include "PeakDetector.h"
+#include <SoundCardDrift.h>
+#include <PeakDetector.h>
 #include <readerwriterqueue.h>
 
 #include <DSPModule_rt.h>
