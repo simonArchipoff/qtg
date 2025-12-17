@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
         if(dsp.getResult(r))
             ;
         if(input.soundcarddrift.execute() && input.soundcarddrift.getSize() > 3)
-        {   
+        {
             auto r = input.soundcarddrift.getResult(input.soundcarddrift.getSize());
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));

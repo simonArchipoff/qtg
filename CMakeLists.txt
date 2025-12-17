@@ -48,8 +48,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 find_package(readerwriterqueue CONFIG REQUIRED)
 find_package(kissfft CONFIG REQUIRED)
-find_package(imgui  CONFIG REQUIRED)
-find_package(implot CONFIG REQUIRED)
+
 find_package(CLI11 REQUIRED)
 
 set(QTG_SOURCES
@@ -74,8 +73,6 @@ target_link_libraries(libqtg PUBLIC RtAudio::rtaudio
 add_executable(qtg src/main.cpp ${QTG_SOURCES} )
 target_include_directories(qtg PRIVATE ${QTG_INCLUDES} include)
 target_link_libraries(qtg PRIVATE
-    glfw OpenGL::GL
-    imgui::imgui implot::implot
     libqtg
     CLI11::CLI11
 )
@@ -91,6 +88,7 @@ find_package(Catch2 REQUIRED)
 add_executable(test
     tests/test_timeseriephase.cpp
     tests/test_FrequencyMeasurement.cpp
+    tests/test_FrequencyCounter.cpp
 )
 target_link_libraries(test PUBLIC libqtg)
 

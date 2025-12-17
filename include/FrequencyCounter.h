@@ -14,7 +14,6 @@
 struct FrequencyCounterConfig {
     bool hilbert_shape_preprocessing = false;
 
-    double target_freq = Constants::QUARTZ_FREQUENCY; 
     int lo_freq = Constants::QUARTZ_FREQUENCY;  
     double bw_bandpass = 6;
     unsigned int sample_rate = 96000;
@@ -43,11 +42,11 @@ private:
     {
         frame = 0;
         phase_decim = 0;
+        assert(config.lo_freq * 2 <= config.sample_rate);
         auto sample_rate = config.sample_rate;
-        auto target_freq = config.target_freq;
         auto decimation_factor = config.decimation_factor;
         auto bw_bandpass = config.bw_bandpass;
-        bandpass.setup(8,sample_rate,target_freq,bw_bandpass);
+        bandpass.setup(8,sample_rate,config.lo_freq,bw_bandpass);
         auto fc = sample_rate / (2.0 * decimation_factor);
         lowpass.setup(4,sample_rate, fc);
     }
@@ -82,7 +81,8 @@ class FrequencyCounterDSPAsync{
         freq_measurement.addSamples({o});
     }
     bool getResult(Result &r){
-        
+        assert(false);// not implemented yet
+        //return false;
     }
     void reset(){
         freq_measurement.reset();
