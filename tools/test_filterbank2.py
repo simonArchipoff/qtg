@@ -7,12 +7,14 @@ import matplotlib.pyplot as plt
 # =========================
 # Paramètres
 # =========================
-Fs = 48000 /128 # fréquence d'échantillonnage (à adapter)
+Fs = 48000 / (25*128) # fréquence d'échantillonnage (à adapter)
 print(f"{Fs=}")
 # =========================
 # Chargement des données
 # =========================
 t = np.load("build/dump_out_dsp.npy")
+#t = np.load("build/dump_signal40.npy")
+
 print("Shape du tenseur :", t.shape)
 
 # Signal complexe

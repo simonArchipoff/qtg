@@ -4,26 +4,25 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <FrequencyCounter.h>
-#if 0
+#if 1
 TEST_CASE("FrequencyCounter", "[FrequencyCounter]") {
     FrequencyCounterConfig c;
     const uint sr = 48000;
     c.sample_rate = sr;
-    c.bw_bandpass = 6;
     c.hilbert_shape_preprocessing = false;
-    c.lo_freq = 0;
-    c.duration_analysis_s = 10;
-    c.decimation_factor = 1; //25 * 128;
+    c.lo_freq = 3;
+    c.duration_analysis_s = 1;
+    c.decimation_factor = 25 * 128;
 
     FrequencyCounterDSP dsp(c);
 
     const uint bs = 128;
-    float frequency = 3.05;
+    float frequency = 3.1;
 
     std::vector<float> signal;
-    signal.resize(5 * sr);
+    signal.resize(100 * sr);
     for(uint i = 0; i < signal.size(); i++){
-        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI);
+        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI / static_cast<double>(sr));
     }
     dsp.rt.init(bs);
 
@@ -35,7 +34,7 @@ TEST_CASE("FrequencyCounter", "[FrequencyCounter]") {
             dsp.rt.rt_process(tmp);
             idx += bs;
             static int i = 0;
-            if((++i)%2 == 0){
+            if((++i)%100 == 0){
                 Result r;
                 if(dsp.getResult(r)){
                     (void)1;

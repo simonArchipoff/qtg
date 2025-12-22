@@ -178,7 +178,7 @@ class FrequencyMeasurement
         std::vector<kiss_fft_cpx> tmp(f.size());
         kiss_fft(fft_cfg, f.data(), tmp.data());
 
-/*
+
         #ifndef NDEBUG
         static int idx=0;
         // dump data
@@ -190,7 +190,7 @@ class FrequencyMeasurement
         }
         t.save("dump_signal" + std::to_string(idx++) +".npy");
         #endif
-        */
+        
 
         history.push_back(std::pair(frame, tmp));
     }

@@ -13,16 +13,11 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
             input_block_data[i] = std::hypotf(tmp_buff_i[i], tmp_buff_q[i]);
         }
     }
-    if(bandpass_too_low){
-        bandpass_if_too_low.process(input_size,&input_block_data);
-    }else {
-        bandpass.process(input_size, &input_block_data);
-    }
 
     for (size_t i = 0; i < input_size; ++i)
     {
         auto t = static_cast<double>(frame) / static_cast<double>(config.sample_rate);
-        frame = (frame+1) % config.sample_rate;
+        frame = (frame+1);// % config.sample_rate;
         auto phase = -2 * M_PI * config.lo_freq * t;
         double c, s;
         sincos(phase, &s, &c);
@@ -30,6 +25,9 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
         tmp_buff_i[i] = c * input_block_data[i];
         tmp_buff_q[i] = s * input_block_data[i];
     }
+
+
+    
     float *c[]= {tmp_buff_i.data(),tmp_buff_q.data()};
     lowpass.process(input_size, c);
 
@@ -37,6 +35,9 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
     {
         if (phase_decim % config.decimation_factor == 0)
         {
+            float * tmp[] = {&tmp_buff_i[i],&tmp_buff_q[i]};
+            lowpass_decim.process(1,tmp);
+
             auto out = std::complex<float>(tmp_buff_i[i], tmp_buff_q[i]);
             outputQueue.enqueue(out);
         }

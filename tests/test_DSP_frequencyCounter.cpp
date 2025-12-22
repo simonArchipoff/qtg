@@ -8,25 +8,25 @@
 #include <npy/tensor.h>
 #include <npy/npy.h>
 
+#if 1
 TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     FrequencyCounterConfig c;
     const uint sr = 48000;
     c.sample_rate = sr;
-    c.bw_bandpass = 100;
     c.hilbert_shape_preprocessing = false;
-    c.lo_freq = 0;
-    c.duration_analysis_s = 1;
-    c.decimation_factor = 128;
+    c.lo_freq = 3;
+    c.duration_analysis_s = 10;
+    c.decimation_factor = 25 * 128;
 
     FrequencyCounterDSP dsp(c);
 
     const uint bs = 128;
-    float frequency = 3.05;
+    float frequency = 3.1;
 
     std::vector<float> signal;
     signal.resize(20 * sr);
     for(uint i = 0; i < signal.size(); i++){
-        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI);
+        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI / static_cast<float>(sr));
     }
     dsp.rt.init(bs);
     std::vector<std::complex<float>> res;
@@ -55,3 +55,4 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
         t.save("dump_out_dsp.npy");
     }
 }
+#endif

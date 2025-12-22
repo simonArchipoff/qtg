@@ -16,7 +16,6 @@ struct FrequencyCounterConfig
     bool hilbert_shape_preprocessing = false;
 
     int lo_freq = 0;
-    double bw_bandpass = 1;
     unsigned int sample_rate = 0;
     unsigned int decimation_factor = 0;
     double duration_analysis_s = 1;
@@ -34,11 +33,9 @@ class FrequencyCounter_rt : public DSPModule_rt
 
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;
-    Dsp::SimpleFilter<Dsp::Butterworth::BandPass<4>, 1> bandpass;
-    bool bandpass_too_low = false;
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 1> bandpass_if_too_low; //bandpass dont behave well too close to 0Hz
-
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
+    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass_decim;
+
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
   public:
@@ -49,21 +46,10 @@ class FrequencyCounter_rt : public DSPModule_rt
         assert(config.lo_freq * 2 <= config.sample_rate);
         auto sample_rate = config.sample_rate;
         auto decimation_factor = config.decimation_factor;
-        auto bw_bandpass = config.bw_bandpass;
-        if(config.lo_freq - (bw_bandpass / 2.0) > 0){
-            bandpass.setup(1, sample_rate, config.lo_freq, bw_bandpass);
-        }else{
-            bandpass_if_too_low.setup(1,sample_rate,config.lo_freq + bw_bandpass / 2.0);
-            bandpass_too_low = true;
-            for(uint i = 0; i < sample_rate; i++){
-                float f = 0;
-                float* pf = &f;
-                bandpass_if_too_low.process(1,&pf);
-            }
-        }
 
         auto fc = sample_rate / (2.0 * decimation_factor);
-        lowpass.setup(2, sample_rate, fc);
+        lowpass.setup(1, sample_rate, fc);
+        lowpass_decim.setup(4,sample_rate / config.decimation_factor, config.lo_freq / 2);
     }
 
     void init(std::size_t input_size) override
@@ -88,7 +74,7 @@ class FrequencyCounterDSPAsync
         : config(c), real_sr(c.sample_rate / c.decimation_factor)
     {
         auto s = kiss_fft_next_fast_size((c.sample_rate / c.decimation_factor) * c.duration_analysis_s);
-        freq_measurement.init(s, std::max(s/10,1));
+        freq_measurement.init(s, s);//std::max(s/10,1));
     }
 
     inline void push(std::complex<float> &o) { freq_measurement.addSamples({o}); }
@@ -110,14 +96,12 @@ class FrequencyCounterDSPAsync
         {
             for (uint i = 0; i < r.frequencies.size(); i++)
             {
-                if(i == imax){ 
                 std::vector<size_t> t;
                 std::vector<float> p;
                 freq_measurement.getPhases(i, t, p);
                 auto ri = ::getPhaseDriftResult(this->real_sr, t, p);
                 ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
                 freq_bis[i] += ri.frequency;
-                }
             }
         }
         return true;
