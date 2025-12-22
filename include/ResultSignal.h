@@ -54,7 +54,6 @@ struct Result
     template <typename Converter>
     std::vector<double> compute_units(Converter &&converter) const
     {
-
         std::vector<double> res;
         res.reserve(frequencies.size());
         for (double freq : frequencies)

@@ -89,6 +89,7 @@ add_executable(test
     tests/test_timeseriephase.cpp
     tests/test_FrequencyMeasurement.cpp
     tests/test_FrequencyCounter.cpp
+    tests/test_DSP_frequencyCounter.cpp
 )
 target_link_libraries(test PUBLIC libqtg)
 
@@ -97,6 +98,7 @@ target_link_libraries(test
     PRIVATE 
     Catch2::Catch2WithMain
     libqtg
+    npy::npy
 )
 
 if(0)

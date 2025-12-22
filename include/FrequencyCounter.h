@@ -11,19 +11,21 @@
 #include <DSPModule_rt.h>
 #include <FrequencyMeasurement.h>
 
-struct FrequencyCounterConfig {
+struct FrequencyCounterConfig
+{
     bool hilbert_shape_preprocessing = false;
 
-    int lo_freq = Constants::QUARTZ_FREQUENCY;  
-    double bw_bandpass = 6;
-    unsigned int sample_rate = 96000;
-    unsigned int decimation_factor = 32000;
-    double duration_analysis_s = 180;
+    int lo_freq = 0;
+    double bw_bandpass = 1;
+    unsigned int sample_rate = 0;
+    unsigned int decimation_factor = 0;
+    double duration_analysis_s = 1;
 };
 
-class FrequencyCounter_rt : public DSPModule_rt{
-private:
-    const struct FrequencyCounterConfig & config;
+class FrequencyCounter_rt : public DSPModule_rt
+{
+  private:
+    const struct FrequencyCounterConfig &config;
 
     Hilbert hilbert;
 
@@ -32,13 +34,15 @@ private:
 
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;
-    Dsp::SimpleFilter<Dsp::Butterworth::BandPass<8>, 1> bandpass;
+    Dsp::SimpleFilter<Dsp::Butterworth::BandPass<4>, 1> bandpass;
+    bool bandpass_too_low = false;
+    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 1> bandpass_if_too_low; //bandpass dont behave well too close to 0Hz
+
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
-    public:
-    FrequencyCounter_rt(FrequencyCounterConfig & c)
-            :config(c),hilbert(c.sample_rate)
+  public:
+    FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c), hilbert(c.sample_rate)
     {
         frame = 0;
         phase_decim = 0;
@@ -46,67 +50,95 @@ private:
         auto sample_rate = config.sample_rate;
         auto decimation_factor = config.decimation_factor;
         auto bw_bandpass = config.bw_bandpass;
-        bandpass.setup(8,sample_rate,config.lo_freq,bw_bandpass);
+        if(config.lo_freq - (bw_bandpass / 2.0) > 0){
+            bandpass.setup(1, sample_rate, config.lo_freq, bw_bandpass);
+        }else{
+            bandpass_if_too_low.setup(1,sample_rate,config.lo_freq + bw_bandpass / 2.0);
+            bandpass_too_low = true;
+            for(uint i = 0; i < sample_rate; i++){
+                float f = 0;
+                float* pf = &f;
+                bandpass_if_too_low.process(1,&pf);
+            }
+        }
+
         auto fc = sample_rate / (2.0 * decimation_factor);
-        lowpass.setup(4,sample_rate, fc);
+        lowpass.setup(2, sample_rate, fc);
     }
-    
-    void init(std::size_t input_size) override{
+
+    void init(std::size_t input_size) override
+    {
         tmp_buff_i.resize(input_size);
         tmp_buff_q.resize(input_size);
     }
-    size_t sampleRate() const override{
-        return config.sample_rate;
-    }
+    size_t sampleRate() const override { return config.sample_rate; }
 
-    inline bool getOut(std::complex<float>&o){
-        return outputQueue.try_dequeue(o);
-    }
+    inline bool getOut(std::complex<float> &o) { return outputQueue.try_dequeue(o); }
 
     void rt_process(std::vector<float> &input_block) override;
 };
 
-class FrequencyCounterDSPAsync{
-    public:
-    const struct FrequencyCounterConfig & config;
+class FrequencyCounterDSPAsync
+{
+  public:
+    const struct FrequencyCounterConfig &config;
     FrequencyMeasurement freq_measurement;
-    FrequencyCounterDSPAsync(FrequencyCounterConfig & c)
-    :config(c)
-    ,real_sr(c.sample_rate)
+    double real_sr = 0.0;
+    FrequencyCounterDSPAsync(FrequencyCounterConfig &c)
+        : config(c), real_sr(c.sample_rate / c.decimation_factor)
     {
-        freq_measurement.init(512,512); // todo find smart values
+        auto s = kiss_fft_next_fast_size((c.sample_rate / c.decimation_factor) * c.duration_analysis_s);
+        freq_measurement.init(s, std::max(s/10,1));
     }
 
-    inline void push(std::complex<float> & o ){
-        freq_measurement.addSamples({o});
+    inline void push(std::complex<float> &o) { freq_measurement.addSamples({o}); }
+    bool getResult(Result &r)
+    {
+        if (!freq_measurement.history_size())
+            return false;
+        r.magnitudes = freq_measurement.getMagnitude();
+        r.frequencies = freq_measurement.getFrequencies(this->real_sr);
+        for (auto &f : r.frequencies)
+        {
+            f += config.lo_freq;
+        }
+        auto snr = freq_measurement.getSNR();
+        std::vector<float> freq_bis(r.frequencies.begin(), r.frequencies.end());
+        auto imax = std::distance(snr.begin(),std::max_element(snr.begin(), snr.end()));
+
+        if (freq_measurement.history_size() > 1)
+        {
+            for (uint i = 0; i < r.frequencies.size(); i++)
+            {
+                if(i == imax){ 
+                std::vector<size_t> t;
+                std::vector<float> p;
+                freq_measurement.getPhases(i, t, p);
+                auto ri = ::getPhaseDriftResult(this->real_sr, t, p);
+                ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
+                freq_bis[i] += ri.frequency;
+                }
+            }
+        }
+        return true;
     }
-    bool getResult(Result &r){
-        assert(false);// not implemented yet
-        //return false;
-    }
-    void reset(){
-        freq_measurement.reset();
-    }
-    double real_sr = 0.0;
+    void reset() { freq_measurement.reset(); }
 };
 
-
-class FrequencyCounterDSP {
-    public:
+class FrequencyCounterDSP
+{
+  public:
     struct FrequencyCounterConfig config;
-    FrequencyCounterDSP(FrequencyCounterConfig &c)
-        :config(c)
-        ,rt(c)
-        ,async(c)
-    {}
+    FrequencyCounterDSP(FrequencyCounterConfig &c) : config(c), rt(c), async(c) {}
     FrequencyCounter_rt rt;
     FrequencyCounterDSPAsync async;
-    bool new_data=false;
+    bool new_data = false;
 
-    bool getResult(Result&r){
+    bool getResult(Result &r)
+    {
         runAsync();
-        if(new_data)
-        { 
+        if (new_data)
+        {
             auto res = async.getResult(r);
             new_data = false;
             return res;
@@ -114,15 +146,13 @@ class FrequencyCounterDSP {
         return false;
     }
 
-    void reset(){
-        async.reset();
-    }
-    void setRealSR(double sr){
-        this->async.real_sr = sr;
-    }
-    void runAsync(){
+    void reset() { async.reset(); }
+    void setRealSR(double sr) { this->async.real_sr = sr; }
+    void runAsync()
+    {
         std::complex<float> o;
-        while(rt.getOut(o)){
+        while (rt.getOut(o))
+        {
             async.push(o);
             new_data = true;
         }

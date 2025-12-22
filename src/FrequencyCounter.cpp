@@ -13,13 +13,16 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
             input_block_data[i] = std::hypotf(tmp_buff_i[i], tmp_buff_q[i]);
         }
     }
+    if(bandpass_too_low){
+        bandpass_if_too_low.process(input_size,&input_block_data);
+    }else {
+        bandpass.process(input_size, &input_block_data);
+    }
 
-    bandpass.process(input_size, &input_block_data);
     for (size_t i = 0; i < input_size; ++i)
     {
-        auto f = frame++ % config.sample_rate;
-
-        auto t = static_cast<double>(f) / static_cast<double>(config.sample_rate);
+        auto t = static_cast<double>(frame) / static_cast<double>(config.sample_rate);
+        frame = (frame+1) % config.sample_rate;
         auto phase = -2 * M_PI * config.lo_freq * t;
         double c, s;
         sincos(phase, &s, &c);

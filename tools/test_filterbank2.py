@@ -1,39 +1,59 @@
+ 
+
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-# --- Charger les données ---
-t = np.load("build/state.npy")  # adapte le nom du fichier si besoin
+# =========================
+# Paramètres
+# =========================
+Fs = 48000 /128 # fréquence d'échantillonnage (à adapter)
+print(f"{Fs=}")
+# =========================
+# Chargement des données
+# =========================
+t = np.load("build/dump_out_dsp.npy")
 print("Shape du tenseur :", t.shape)
 
-# Reconstruction du signal complexe
-Z = t[...,0] + 1j*t[...,1]
+# Signal complexe
+Z = t[..., 0] + 1j * t[..., 1]
+N = len(Z)
 
-# Calcul amplitude et phase
-amplitude = np.abs(Z)
-phase = np.angle(Z)
-
-
+# =========================
 # Axes
-nbfreq, nframes = amplitude.shape
+# =========================
+time = np.arange(N) / Fs
 
-# --- Affichage côte à côte ---
-fig, axs = plt.subplots(1, 2, figsize=(14,6))
+# FFT
+Z_fft = np.fft.fft(Z)
+freqs = np.fft.fftfreq(N, d=1/Fs)
 
-# Amplitude
-im0 = axs[0].imshow(amplitude, aspect='auto', origin='lower', interpolation='none')
-axs[0].set_title("Amplitude")
-axs[0].set_xlabel("Échantillons")
-axs[0].set_ylabel("Indice de fréquence")
-fig.colorbar(im0, ax=axs[0])
+# Centrage du spectre
+Z_fft = np.fft.fftshift(Z_fft)
+freqs = np.fft.fftshift(freqs)
 
-# Phase
-im1 = axs[1].imshow(phase, aspect='auto', origin='lower', interpolation='none', cmap='twilight')
-axs[1].set_title("Phase")
-axs[1].set_xlabel("Échantillons")
-axs[1].set_ylabel("Indice de fréquence")
-fig.colorbar(im1, ax=axs[1])
+# =========================
+# Affichage
+# =========================
+plt.figure(figsize=(12, 6))
+
+# --- Subplot 1 : temporel ---
+plt.subplot(2, 1, 1)
+plt.plot(time, Z.real, label="Réel")
+plt.plot(time, Z.imag, "--", label="Imaginaire")
+plt.xlabel("Temps (s)")
+plt.ylabel("Amplitude")
+plt.title("Signal temporel complexe")
+plt.legend()
+plt.grid(True)
+
+# --- Subplot 2 : fréquentiel ---
+plt.subplot(2, 1, 2)
+plt.plot(freqs, np.abs(Z_fft))
+plt.xlabel("Fréquence (Hz)")
+plt.ylabel("Amplitude")
+plt.title("Spectre fréquentiel |FFT(Z)|")
+plt.grid(True)
 
 plt.tight_layout()
 plt.show()
-

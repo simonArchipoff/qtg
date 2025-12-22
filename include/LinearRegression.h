@@ -125,7 +125,7 @@ static LinearFitResult linear_regression(const std::vector<double> &x, const std
 
     // Coefficient de détermination R²
     double r_squared = 1 - (ss_res / Syy);
-    double t_crit = get_t_critical_95(static_cast<int>(N - 2));
+    double t_crit = N>2 ? get_t_critical_95(static_cast<int>(N - 2)):INFINITY;
     double alpha_ci95 = t_crit * alpha_stderr;
     return {alpha, beta, r_squared, alpha_stderr, alpha_ci95};
 }

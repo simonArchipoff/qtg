@@ -9,6 +9,10 @@
 #include "CircularBuffer.h"
 #include "LinearRegression.h"
 
+#ifndef NDEBUG
+#include <npy/tensor.h>
+#include <npy/npy.h>
+#endif
 inline kiss_fft_cpx to_kiss(const float &v)
 {
     kiss_fft_cpx c{};
@@ -88,6 +92,11 @@ inline struct PhaseDriftResult getPhaseDriftResult(double sampleRate, const std:
     unwrapPhases(phase_d);
     auto lin = linear_regression(time_d, phase_d);
 
+    std::vector<double> diff(phase_d.size() - 1);
+    for(int i = 0; i < diff.size(); i++){
+        diff[i] = phase_d[i] - phase_d[i+1];
+    }
+
     PhaseDriftResult r{ .frequency = sampleRate * lin.alpha        / (2*M_PI)
                       , .stddev    = sampleRate * lin.alpha_stderr / (2*M_PI)
                     };
@@ -138,15 +147,22 @@ class FrequencyMeasurement
         frame = 0;
         this->period = period;
     }
+    uint getBlockSize() const {
+        return circ.capacity();
+    }
 
     void reset(){
         circ.reset();
         history.resize(0);
+        frame = 0;
     }
-
+    int history_size() const{
+        return history.size();
+    }
     void addFFT()
     {
         assert(frame % period == 0);
+        assert(frame >= period);
         assert(circ.size() == circ.capacity());
         auto f = circ.get_ordered();
         assert(f.size() == circ.size());
@@ -161,6 +177,21 @@ class FrequencyMeasurement
         }
         std::vector<kiss_fft_cpx> tmp(f.size());
         kiss_fft(fft_cfg, f.data(), tmp.data());
+
+/*
+        #ifndef NDEBUG
+        static int idx=0;
+        // dump data
+        std::vector<size_t> shape({f.size(),2});
+        npy::tensor<float> t(shape);
+        for(int i = 0; i < f.size(); i++){
+            t(i,0)=f[i].r;
+            t(i,1)=f[i].i;
+        }
+        t.save("dump_signal" + std::to_string(idx++) +".npy");
+        #endif
+        */
+
         history.push_back(std::pair(frame, tmp));
     }
 
@@ -184,7 +215,7 @@ class FrequencyMeasurement
     void getPhases(uint idx, std::vector<size_t> &time, std::vector<float> &phases)
     {
         assert(circ.size() > idx);
-        assert(history.size()>0);
+        assert(history.size() > 0);
         time.clear();
         time.reserve(history.size());
         phases.clear();
@@ -196,6 +227,7 @@ class FrequencyMeasurement
             phaseRef = std::fmod(phaseRef, 2*M_PI);
             time.push_back(i.first);
             auto p = kiss_phase(i.second.at(idx));
+            /*
             auto diff = p - phaseRef;
             
             while(diff > M_PI){
@@ -204,7 +236,8 @@ class FrequencyMeasurement
             while(diff < -M_PI){
                 diff += 2*M_PI;
             }
-            phases.push_back(diff);//std::fmod(diff,2*M_PI));
+                */
+            phases.push_back(p);//std::fmod(diff,2*M_PI));
         }
     }
 
