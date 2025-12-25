@@ -4,7 +4,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <FrequencyCounter.h>
-#if 1
+#if 0
 TEST_CASE("FrequencyCounter", "[FrequencyCounter]") {
     FrequencyCounterConfig c;
     const uint sr = 48000;

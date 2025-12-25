@@ -4,17 +4,18 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <FrequencyMeasurement.h>
-#if 0
+#if 1
 TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
     FrequencyMeasurement f;
     uint sr = 8;
-    uint bs = 32;
-    f.init(bs,8);
-    float frequency = 3.1;
-    SECTION("Valeurs par défaut") {
-        std::vector<float> s(1000);
+    uint bs = 8;
+    uint hop = 2;
+    f.init(bs,hop);
+    float frequency = 2.45;
+    SECTION("phase coherence") {
+        std::vector<float> s(100);
         for(uint i = 0; i < s.size(); i++){
-            s[i] = std::sin(i * frequency * 2 * M_PI / static_cast<float>(sr));
+            s[i] = std::cos(i * frequency * 2 * M_PI / static_cast<float>(sr));
         }
         f.addSamples(s.begin(), s.end());
         auto m = f.getMagnitude();
@@ -27,11 +28,11 @@ TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
         auto rimax = ::getPhaseDriftResult(sr,t,p);
         rimax.frequency += ::getFrequencyNormBin(imax,bs) * sr;
         f.getPhases(imax-1,t,p); 
-        auto r11 = ::getPhaseDriftResult(sr,t,p);
-        r11.frequency += ::getFrequencyNormBin(imax-1,bs) * sr;
+        auto r_1 = ::getPhaseDriftResult(sr,t,p);
+        r_1.frequency += ::getFrequencyNormBin(imax-1,bs) * sr;
         f.getPhases(imax+1,t,p);
-        auto r13 = ::getPhaseDriftResult(sr,t,p);
-        r13.frequency += ::getFrequencyNormBin(imax+1,bs) * sr;
+        auto r1 = ::getPhaseDriftResult(sr,t,p);
+        r1.frequency += ::getFrequencyNormBin(imax+1,bs) * sr;
 
         REQUIRE(true);
     }

@@ -166,7 +166,18 @@ class FrequencyMeasurement
         assert(circ.size() == circ.capacity());
         auto f = circ.get_ordered();
         assert(f.size() == circ.size());
-        if (add_window)
+        #ifndef NDEBUG
+        static int idx=0;
+        // dump data
+        std::vector<size_t> shape({f.size(),2});
+        npy::tensor<float> t(shape);
+        for(uint i = 0; i < f.size(); i++){
+            t(i,0)=f[i].r;
+            t(i,1)=f[i].i;
+        }
+        t.save("dump_signal" + std::to_string(idx++) +".npy");
+        #endif
+        if (false && add_window)
         {
             for (size_t i = 0; i < f.size(); ++i)
             {
@@ -179,20 +190,27 @@ class FrequencyMeasurement
         kiss_fft(fft_cfg, f.data(), tmp.data());
 
 
-        #ifndef NDEBUG
-        static int idx=0;
-        // dump data
-        std::vector<size_t> shape({f.size(),2});
-        npy::tensor<float> t(shape);
-        for(int i = 0; i < f.size(); i++){
-            t(i,0)=f[i].r;
-            t(i,1)=f[i].i;
-        }
-        t.save("dump_signal" + std::to_string(idx++) +".npy");
-        #endif
-        
 
-        history.push_back(std::pair(frame, tmp));
+        
+        const auto n = getBlockSize();
+        //phase coherence
+        const auto fr = frame - 2 * period;
+        double p = 2 * M_PI * (static_cast<double>((fr % n)) / n) ;
+
+        for(uint i = 1; i < tmp.size(); i++){
+            double s,c;
+            sincos(p*static_cast<double>(i),&s,&c);
+            kiss_fft_cpx corr;
+            corr.i = -s;
+            corr.r = c;
+            double cr = tmp[i].r * corr.r - tmp[i].i * corr.i;
+            double ci = tmp[i].r * corr.i + tmp[i].i * corr.r;
+            tmp[i].i = ci;
+            tmp[i].r = cr;
+        }
+
+
+        history.push_back(std::pair(fr, tmp));
     }
 
     template <typename InputIt>
@@ -223,20 +241,8 @@ class FrequencyMeasurement
         double period = ::getPeriodBin(idx,circ.size());
         for (const auto &i : history)
         {
-            double phaseRef = 2*M_PI * (i.first / period);
-            phaseRef = std::fmod(phaseRef, 2*M_PI);
             time.push_back(i.first);
             auto p = kiss_phase(i.second.at(idx));
-            /*
-            auto diff = p - phaseRef;
-            
-            while(diff > M_PI){
-                diff -= 2 * M_PI;
-            } 
-            while(diff < -M_PI){
-                diff += 2*M_PI;
-            }
-                */
             phases.push_back(p);//std::fmod(diff,2*M_PI));
         }
     }
