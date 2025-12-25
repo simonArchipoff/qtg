@@ -17,7 +17,7 @@ TEST_CASE("FrequencyCounter", "[FrequencyCounter]") {
     FrequencyCounterDSP dsp(c);
 
     const uint bs = 128;
-    float frequency = 3.1;
+    float frequency = 3.141;
 
     std::vector<float> signal;
     signal.resize(100 * sr);

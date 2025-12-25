@@ -20,11 +20,11 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
 
     FrequencyCounterDSP dsp(c);
 
-    const uint bs = 128;
-    float frequency = 3.1;
+    const uint bs = 32;
+    float frequency = 3.141;
 
     std::vector<float> signal;
-    signal.resize(20 * sr);
+    signal.resize(200 * sr);
     for(uint i = 0; i < signal.size(); i++){
         signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI / static_cast<float>(sr));
     }
@@ -40,10 +40,13 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
             dsp.rt.rt_process(tmp);
             idx += bs;
 
-            std::complex<float> c;
-            while(dsp.rt.getOut(c)){
-                res.push_back(c);
-            }
+
+            dsp.runAsync();
+        }
+
+        Result r;
+        if(dsp.getResult(r)){
+            auto f = r.frequencies;
         }
 
         std::vector<size_t> shape({res.size(),2});

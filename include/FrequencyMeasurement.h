@@ -93,7 +93,7 @@ inline struct PhaseDriftResult getPhaseDriftResult(double sampleRate, const std:
     auto lin = linear_regression(time_d, phase_d);
 
     std::vector<double> diff(phase_d.size() - 1);
-    for(int i = 0; i < diff.size(); i++){
+    for(uint i = 0; i < diff.size(); i++){
         diff[i] = phase_d[i] - phase_d[i+1];
     }
 

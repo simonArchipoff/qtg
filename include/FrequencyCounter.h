@@ -74,7 +74,7 @@ class FrequencyCounterDSPAsync
         : config(c), real_sr(c.sample_rate / c.decimation_factor)
     {
         auto s = kiss_fft_next_fast_size((c.sample_rate / c.decimation_factor) * c.duration_analysis_s);
-        freq_measurement.init(s, s);//std::max(s/10,1));
+        freq_measurement.init(s, std::max(s/10,1));
     }
 
     inline void push(std::complex<float> &o) { freq_measurement.addSamples({o}); }
@@ -100,7 +100,8 @@ class FrequencyCounterDSPAsync
                 std::vector<float> p;
                 freq_measurement.getPhases(i, t, p);
                 auto ri = ::getPhaseDriftResult(this->real_sr, t, p);
-                ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
+                //it doesn't depend on the bin? I am missing something
+                //ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
                 freq_bis[i] += ri.frequency;
             }
         }

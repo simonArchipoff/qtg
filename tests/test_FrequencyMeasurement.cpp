@@ -8,12 +8,12 @@
 TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
     FrequencyMeasurement f;
     uint sr = 8;
-    uint bs = 8;
+    uint bs = 12;
     uint hop = 2;
     f.init(bs,hop);
     float frequency = 2.45;
     SECTION("phase coherence") {
-        std::vector<float> s(100);
+        std::vector<float> s(1000);
         for(uint i = 0; i < s.size(); i++){
             s[i] = std::cos(i * frequency * 2 * M_PI / static_cast<float>(sr));
         }
