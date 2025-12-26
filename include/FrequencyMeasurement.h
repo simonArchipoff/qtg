@@ -166,7 +166,7 @@ class FrequencyMeasurement
         assert(circ.size() == circ.capacity());
         auto f = circ.get_ordered();
         assert(f.size() == circ.size());
-        #ifndef NDEBUG
+        #if 0
         static int idx=0;
         // dump data
         std::vector<size_t> shape({f.size(),2});

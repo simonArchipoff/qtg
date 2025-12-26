@@ -89,7 +89,7 @@ class FrequencyCounterDSPAsync
             f += config.lo_freq;
         }
         auto snr = freq_measurement.getSNR();
-        std::vector<float> freq_bis(r.frequencies.begin(), r.frequencies.end());
+        std::vector<double> freq_bis(r.frequencies.begin(), r.frequencies.end());
         auto imax = std::distance(snr.begin(),std::max_element(snr.begin(), snr.end()));
 
         if (freq_measurement.history_size() > 1)
@@ -104,6 +104,7 @@ class FrequencyCounterDSPAsync
                 //ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
                 freq_bis[i] += ri.frequency;
             }
+            r.frequencies_corrected_phasedrift = freq_bis;
         }
         return true;
     }

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include <iterator>
 enum class Unit
 {
     Hertz,
@@ -42,14 +43,17 @@ inline std::string to_string(Unit u)
 struct Result
 {
     std::vector<double> magnitudes;
-    std::vector<double> phases;
     std::vector<double> frequencies;
+    std::vector<double> frequencies_corrected_phasedrift;
     double time;
-    double progress = 0.0;
     double nominal_frequency;
     double real_frequency;
 
-    double getProgressPercent() { return progress * 100; }
+    
+    double strongest_frequency(){
+        auto imax = std::distance(magnitudes.begin(),std::max_element(magnitudes.begin(), magnitudes.end()));
+        return frequencies_corrected_phasedrift[imax];
+    }
 
     template <typename Converter>
     std::vector<double> compute_units(Converter &&converter) const

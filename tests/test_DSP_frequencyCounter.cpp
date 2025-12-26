@@ -15,18 +15,18 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     c.sample_rate = sr;
     c.hilbert_shape_preprocessing = false;
     c.lo_freq = 3;
-    c.duration_analysis_s = 10;
+    c.duration_analysis_s = 4;
     c.decimation_factor = 25 * 128;
 
     FrequencyCounterDSP dsp(c);
 
-    const uint bs = 32;
-    float frequency = 3.141;
+    const uint bs = 16;
+    double frequency = 3.12345678;
 
     std::vector<float> signal;
-    signal.resize(200 * sr);
+    signal.resize(35 * sr);
     for(uint i = 0; i < signal.size(); i++){
-        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI / static_cast<float>(sr));
+        signal[i] = sin(static_cast<double>(i) * frequency * 2 * M_PI / static_cast<double>(sr));
     }
     dsp.rt.init(bs);
     std::vector<std::complex<float>> res;
@@ -40,15 +40,18 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
             dsp.rt.rt_process(tmp);
             idx += bs;
 
-
             dsp.runAsync();
         }
 
         Result r;
         if(dsp.getResult(r)){
-            auto f = r.frequencies;
+            auto f = r.strongest_frequency();
+            double diff = abs(f-frequency);
+            REQUIRE(diff < 0.0001);
+        } else{
+            REQUIRE(false);
         }
-
+#if 0
         std::vector<size_t> shape({res.size(),2});
         npy::tensor<float> t(shape);
         for(uint i = 0; i < res.size(); i++){
@@ -56,6 +59,7 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
             t(i,1)=res[i].imag();
         }
         t.save("dump_out_dsp.npy");
+#endif
     }
 }
 #endif
