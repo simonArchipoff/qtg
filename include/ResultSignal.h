@@ -14,7 +14,6 @@ enum class Unit
     PPM,
 };
 
-// Pour affichage humain (optionnel mais pratique)
 inline std::ostream &operator<<(std::ostream &os, const Unit &u)
 {
     switch (u)

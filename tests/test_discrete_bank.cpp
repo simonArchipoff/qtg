@@ -10,7 +10,5 @@ int main(){
         filter.process({0});
         auto r = filter.state;
     }
-    
     return 0;
-
 }

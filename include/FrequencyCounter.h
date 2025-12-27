@@ -39,19 +39,7 @@ class FrequencyCounter_rt : public DSPModule_rt
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
   public:
-    FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c), hilbert(c.sample_rate)
-    {
-        frame = 0;
-        phase_decim = 0;
-        assert(config.lo_freq * 2 <= config.sample_rate);
-        auto sample_rate = config.sample_rate;
-        auto decimation_factor = config.decimation_factor;
-
-        auto fc = sample_rate / (2.0 * decimation_factor);
-        lowpass.setup(1, sample_rate, fc);
-        lowpass_decim.setup(4,sample_rate / config.decimation_factor, config.lo_freq / 2);
-    }
-
+    FrequencyCounter_rt(FrequencyCounterConfig &c);
     void init(std::size_t input_size) override
     {
         tmp_buff_i.resize(input_size);
@@ -70,44 +58,10 @@ class FrequencyCounterDSPAsync
     const struct FrequencyCounterConfig &config;
     FrequencyMeasurement freq_measurement;
     double real_sr = 0.0;
-    FrequencyCounterDSPAsync(FrequencyCounterConfig &c)
-        : config(c), real_sr(c.sample_rate / c.decimation_factor)
-    {
-        auto s = kiss_fft_next_fast_size((c.sample_rate / c.decimation_factor) * c.duration_analysis_s);
-        freq_measurement.init(s, std::max(s/10,1));
-    }
+    FrequencyCounterDSPAsync(FrequencyCounterConfig &c);
 
     inline void push(std::complex<float> &o) { freq_measurement.addSamples({o}); }
-    bool getResult(Result &r)
-    {
-        if (!freq_measurement.history_size())
-            return false;
-        r.magnitudes = freq_measurement.getMagnitude();
-        r.frequencies = freq_measurement.getFrequencies(this->real_sr);
-        for (auto &f : r.frequencies)
-        {
-            f += config.lo_freq;
-        }
-        auto snr = freq_measurement.getSNR();
-        std::vector<double> freq_bis(r.frequencies.begin(), r.frequencies.end());
-        auto imax = std::distance(snr.begin(),std::max_element(snr.begin(), snr.end()));
-
-        if (freq_measurement.history_size() > 1)
-        {
-            for (uint i = 0; i < r.frequencies.size(); i++)
-            {
-                std::vector<size_t> t;
-                std::vector<float> p;
-                freq_measurement.getPhases(i, t, p);
-                auto ri = ::getPhaseDriftResult(this->real_sr, t, p);
-                //it doesn't depend on the bin? I am missing something
-                //ri.frequency += ::getFrequencyNormBin(i, freq_measurement.getBlockSize()) * real_sr;
-                freq_bis[i] += ri.frequency;
-            }
-            r.frequencies_corrected_phasedrift = freq_bis;
-        }
-        return true;
-    }
+    bool getResult(Result &r);
     void reset() { freq_measurement.reset(); }
 };
 
