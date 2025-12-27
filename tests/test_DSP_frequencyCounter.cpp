@@ -16,6 +16,7 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     c.hilbert_shape_preprocessing = false;
     c.lo_freq = 3;
     c.duration_analysis_s = 4;
+    c.duration_between_analysis = 0.2;
     c.decimation_factor = 25 * 128;
 
     FrequencyCounterDSP dsp(c);

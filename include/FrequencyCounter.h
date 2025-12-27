@@ -19,6 +19,10 @@ struct FrequencyCounterConfig
     unsigned int sample_rate = 0;
     unsigned int decimation_factor = 0;
     double duration_analysis_s = 1;
+
+    double duration_between_analysis = 0.1; /* should probably be smaller than duration_analysis*/
+    uint number_measures = 0; // 0 === unlimited
+
 };
 
 class FrequencyCounter_rt : public DSPModule_rt

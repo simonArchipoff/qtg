@@ -10,7 +10,8 @@ TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
     uint sr = 8;
     uint bs = 12;
     uint hop = 2;
-    f.init(bs,hop);
+    uint history_size = 16;
+    f.init(bs,hop,history_size);
     float frequency = 2.45;
     SECTION("phase coherence") {
         std::vector<float> s(1000);
@@ -22,7 +23,7 @@ TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
         auto fr = f.getFrequencies(sr);
         auto snr = f.getSNR();
         auto imax = std::distance(snr.begin(),std::max_element(snr.begin(), snr.end()));
-        std::vector<size_t> t;
+          std::vector<size_t> t;
         std::vector<float> p;
         f.getPhases(imax,t,p);
         auto rimax = ::getPhaseDriftResult(sr,t,p);
@@ -33,8 +34,10 @@ TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
         f.getPhases(imax+1,t,p);
         auto r1 = ::getPhaseDriftResult(sr,t,p);
         r1.frequency += ::getFrequencyNormBin(imax+1,bs) * sr;
-
-        REQUIRE(true);
+        REQUIRE(f.history_size() <= history_size);
+        REQUIRE(std::abs(rimax.frequency - frequency) < 0.01);
+        REQUIRE(std::abs(r_1.frequency   - frequency) < 0.01);
+        REQUIRE(std::abs(r1.frequency    - frequency) < 0.01);
     }
 }
 #endif

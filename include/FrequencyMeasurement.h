@@ -44,12 +44,13 @@ class FrequencyMeasurement
     kiss_fft_cfg fft_cfg = nullptr;
     size_t frame;
     size_t period;
+    size_t size_history;
     bool add_window = true;
 
   public:
     FrequencyMeasurement() {}
 
-    void init(int block_size, int period);
+    void init(int block_size, int period, int size_history=0 /*0 === unlimited*/);
     uint getBlockSize() const;
 
     void reset();

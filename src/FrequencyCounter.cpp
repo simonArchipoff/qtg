@@ -91,6 +91,7 @@ bool FrequencyCounterDSPAsync::getResult(Result &r){
 FrequencyCounterDSPAsync::FrequencyCounterDSPAsync(FrequencyCounterConfig &c)
     : config(c), real_sr(c.sample_rate / c.decimation_factor)
 {
-    auto s = kiss_fft_next_fast_size((c.sample_rate / c.decimation_factor) * c.duration_analysis_s);
-    freq_measurement.init(s, std::max(s/10,1));
+    auto d_sr = c.sample_rate / c.decimation_factor;
+    auto s = kiss_fft_next_fast_size(d_sr* c.duration_analysis_s);
+    freq_measurement.init(s, std::max(1,static_cast<int>(d_sr * c.duration_between_analysis)));
 }
