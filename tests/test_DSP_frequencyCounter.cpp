@@ -5,15 +5,13 @@
 
 #include <FrequencyCounter.h>
 
-#include <npy/tensor.h>
 #include <npy/npy.h>
 
 #if 1
 TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     FrequencyCounterConfig c;
     const uint sr = 48000;
-    c.sample_rate = sr;
-    c.hilbert_shape_preprocessing = false;
+    c.sample_rate_nominal = sr;
     c.lo_freq = 3;
     c.duration_analysis_s = 4;
     c.duration_between_analysis = 0.2;

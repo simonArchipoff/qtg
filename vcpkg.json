@@ -6,16 +6,6 @@
       "name": "cli11"
     },
     {
-      "name": "glfw3"
-    },
-    {
-      "name": "imgui",
-      "features": [ "glfw-binding", "opengl3-binding" ]
-    },
-    {
-      "name": "implot"
-    },
-    {
       "name": "kissfft"
     },
     {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Butterworth.h>
-#include "Hilbert.h"
 #include "Constants.h"
 #include <readerwriterqueue.h>
 #include <cstddef>
@@ -13,10 +12,8 @@
 
 struct FrequencyCounterConfig
 {
-    bool hilbert_shape_preprocessing = false;
-
     int lo_freq = 0;
-    unsigned int sample_rate = 0;
+    unsigned int sample_rate_nominal = 0;
     unsigned int decimation_factor = 0;
     double duration_analysis_s = 1;
 
@@ -29,8 +26,6 @@ class FrequencyCounter_rt : public DSPModule_rt
 {
   private:
     const struct FrequencyCounterConfig &config;
-
-    Hilbert hilbert;
 
     unsigned long frame;
     unsigned long phase_decim;
@@ -49,7 +44,7 @@ class FrequencyCounter_rt : public DSPModule_rt
         tmp_buff_i.resize(input_size);
         tmp_buff_q.resize(input_size);
     }
-    size_t sampleRate() const override { return config.sample_rate; }
+    size_t sampleRateNominal() const override { return config.sample_rate_nominal; }
 
     inline bool getOut(std::complex<float> &o) { return outputQueue.try_dequeue(o); }
 

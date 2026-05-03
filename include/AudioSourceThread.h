@@ -14,42 +14,42 @@
 
 class RtAudioCaptureThread : public PeakDetector {
 public:
-    const unsigned int sampleRate;
-    unsigned int input_size;
-    DSPModule_rt & dsp;
-    std::vector<float> internal_buffer;
-    RtAudioCaptureThread(DSPModule_rt &dsp, int inputDeviceId = -1,
-        unsigned int block_size = 64 * 1024, unsigned int number_channels = 2);
+  const unsigned int sampleRate;
+  unsigned int input_size;
+  DSPModule_rt & dsp;
+  std::vector<float> internal_buffer;
+  RtAudioCaptureThread(DSPModule_rt &dsp, int inputDeviceId = -1,
+		       unsigned int block_size = 64 * 1024, unsigned int number_channels = 2);
 
-    ~RtAudioCaptureThread() {
-        stop();
-    }
+  ~RtAudioCaptureThread() {
+    stop();
+  }
 
-    bool start();
+  bool start();
 
-    void stop();
+  void stop();
 
-    bool getDriftSoundcard(DriftResult &result);
-    int getSampleRate()const {
-        return sampleRate;
-    }
+  bool getDriftSoundcard(DriftResult &result);
+  int getSampleRate()const {
+    return sampleRate;
+  }
 
-    static std::vector<std::string> listInputDevices();
+  static std::vector<std::string> listInputDevices();
 
-  public:
-    DriftData soundcarddrift;
+public:
+  DriftData soundcarddrift;
 private:
 
-    uint64_t currentFrame = 0;
-    unsigned int channels;
-    int inputDeviceId;
+  uint64_t currentFrame = 0;
+  unsigned int channels;
+  int inputDeviceId;
 
-    std::atomic<bool> isRunning;
-    std::unique_ptr<RtAudio> audio;
+  std::atomic<bool> isRunning;
+  std::unique_ptr<RtAudio> audio;
 
 
-    moodycamel::ReaderWriterQueue<DriftResult> driftresultqueue;
+  moodycamel::ReaderWriterQueue<DriftResult> driftresultqueue;
 
-    static int rtCallback(void *outputBuffer, void *inputBuffer, unsigned int nFrames,
-        double /*streamTime*/, RtAudioStreamStatus status, void *userData);
+  static int rtCallback(void *outputBuffer, void *inputBuffer, unsigned int nFrames,
+			double /*streamTime*/, RtAudioStreamStatus status, void *userData);
 };

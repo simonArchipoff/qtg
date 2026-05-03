@@ -71,13 +71,8 @@ class FrequencyMeasurement
         }
     }
     void addSamples(const std::vector<std::complex<float>> & samples);
-
     void getPhases(uint idx, std::vector<size_t> &time, std::vector<float> &phases);
-
     std::vector<double> getFrequencies(double sampleRate);
-
     std::vector<double> getMagnitude();
-
     std::vector<double> getSNR();
-
 };

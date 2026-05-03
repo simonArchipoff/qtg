@@ -122,7 +122,7 @@ int RtAudioCaptureThread::rtCallback(void *outputBuffer, void *inputBuffer, unsi
 }
 RtAudioCaptureThread::RtAudioCaptureThread(
     DSPModule_rt &dsp, int inputDeviceId, unsigned int block_size, unsigned int number_channels)
-    : PeakDetector(dsp.sampleRate(), 1), sampleRate(dsp.sampleRate()),
+    : PeakDetector(dsp.sampleRateNominal(), 1), sampleRate(dsp.sampleRateNominal()),
       input_size(block_size), dsp(dsp), soundcarddrift(600), channels(number_channels),
       inputDeviceId(inputDeviceId), isRunning(false), audio(nullptr)
 {

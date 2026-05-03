@@ -48,7 +48,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 find_package(readerwriterqueue CONFIG REQUIRED)
 find_package(kissfft CONFIG REQUIRED)
-
+find_package(npy REQUIRED)
 find_package(CLI11 REQUIRED)
 
 set(QTG_SOURCES
@@ -69,7 +69,8 @@ target_include_directories(libqtg PUBLIC include)
 target_link_libraries(libqtg PUBLIC RtAudio::rtaudio
     DSPFilters
     readerwriterqueue::readerwriterqueue
-    kissfft::kissfft-float)
+    kissfft::kissfft-float
+  )
 
 add_executable(qtg src/main.cpp ${QTG_SOURCES} )
 target_include_directories(qtg PRIVATE ${QTG_INCLUDES} include)
@@ -78,8 +79,8 @@ target_link_libraries(qtg PRIVATE
     CLI11::CLI11
 )
 
-
 find_package(npy CONFIG REQUIRED)
+
 add_executable(quick_gen_data tests/test_discrete_bank.cpp )
 target_include_directories(quick_gen_data PRIVATE include)
 target_link_libraries(quick_gen_data PRIVATE npy::npy)
@@ -92,7 +93,6 @@ add_executable(test
     tests/test_FrequencyCounter.cpp
     tests/test_DSP_frequencyCounter.cpp
 )
-target_link_libraries(test PUBLIC libqtg)
 
 # Link with our library and Catch2
 target_link_libraries(test 
