@@ -33,7 +33,6 @@ class FrequencyCounter_rt : public DSPModule_rt
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;
     Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass_decim;
 
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 

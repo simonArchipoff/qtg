@@ -202,6 +202,7 @@ void FrequencyMeasurement::getPhases(uint idx, std::vector<size_t> &time, std::v
         time.push_back(i.first-history[0].first);
         auto p = kiss_phase(i.second.at(idx));
         phases.push_back(p);//std::fmod(diff,2*M_PI));
+        assert(!isnan(p));
     }
 }
 
