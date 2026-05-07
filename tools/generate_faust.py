@@ -145,6 +145,10 @@ def main():
         help="Number of FIR coefficients (odd, forced odd if even; default: 255)"
     )
     parser.add_argument(
+        "--fir-thres", type=float, default=None,
+        help="seiul"
+    )
+    parser.add_argument(
         "-o", "--output", type=str,
         help="Output Faust file (default: stdout)"
     )
@@ -161,7 +165,7 @@ def main():
 
     try:
         b_re, b_im = design_filters(
-            args.sample_rate, args.lowcut, args.highcut, args.fir_size
+            args.sample_rate, args.lowcut, args.highcut, args.fir_size,args.fir_thres
         )
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
