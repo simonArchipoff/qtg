@@ -6,9 +6,6 @@ FrequencyCounter_rt::FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c)
     phase_decim = 0;
     assert(config.lo_freq * 2 <= config.sample_rate_nominal);
     auto sample_rate = config.sample_rate_nominal;
-    auto decimation_factor = config.decimation_factor;
-
-    auto fc = sample_rate / (2.0 * decimation_factor);
     decim = createMultiStageDecim64(sample_rate);
 }
 
@@ -69,9 +66,9 @@ bool FrequencyCounterDSPAsync::getResult(Result &r)
 }
 
 FrequencyCounterDSPAsync::FrequencyCounterDSPAsync(FrequencyCounterConfig &c)
-    : config(c), real_sr(static_cast<double>(c.sample_rate_nominal) / c.decimation_factor)
+    : config(c), real_sr(static_cast<double>(64))
 {
-    auto d_sr = c.sample_rate_nominal / c.decimation_factor; // init value, not actual sr
+    auto d_sr = 64; //c.sample_rate_nominal / c.decimation_factor; // init value, not actual sr
     auto s = kiss_fft_next_fast_size(d_sr * c.duration_analysis_s);
     freq_measurement.init(s, std::max(1, static_cast<int>(d_sr * c.duration_between_analysis)));
 }

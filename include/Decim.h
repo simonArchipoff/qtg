@@ -5,7 +5,7 @@ template <uint fs, uint decim>
 struct Decim
 {
   protected:
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass_decim;
+    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<6>, 2> lowpass_decim;
     int frame = 0;
 
   public:
@@ -13,7 +13,7 @@ struct Decim
     Decim() : frame(0)
     {
         static_assert(decim > 0 && fs % decim == 0);
-        lowpass_decim.setup(4, fs, 0.5 * fs / decim);
+        lowpass_decim.setup(6, fs, 0.5 * fs / decim);
     }
     size_t process(float *real, float *imag, size_t size_in)
     {
