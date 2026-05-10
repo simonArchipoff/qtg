@@ -9,8 +9,6 @@
 #include <kiss_fft.h>
 
 
-
-
 inline kiss_fft_cpx to_kiss(const float &v){
     kiss_fft_cpx c{};
     c.r = static_cast<float>(v);
@@ -35,7 +33,7 @@ struct PhaseDriftResult getPhaseDriftResult(double sampleRate, const std::vector
 double getFrequencyNormBin(int bin, int N);
 double getPeriodBin(int bin, int N);
 
-class FrequencyMeasurement
+class WeirdSTFT
 {
   protected:
     std::deque<std::pair<size_t, std::vector<kiss_fft_cpx>>> history;
@@ -48,7 +46,7 @@ class FrequencyMeasurement
     bool add_window = true;
 
   public:
-    FrequencyMeasurement() {}
+    WeirdSTFT() {}
 
     void init(int block_size, int period, int size_history=0 /*0 === unlimited*/);
     uint getBlockSize() const;

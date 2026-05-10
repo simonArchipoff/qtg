@@ -8,7 +8,8 @@
 #include "CircularBuffer.h"
 
 #include <DSPModule_rt.h>
-#include <FrequencyMeasurement.h>
+#include "WeirdSTFT.h"
+#include "Decim.h"
 
 struct FrequencyCounterConfig
 {
@@ -19,7 +20,6 @@ struct FrequencyCounterConfig
 
     double duration_between_analysis = 0.1; /* should probably be smaller than duration_analysis*/
     uint number_measures = 0; // 0 === unlimited
-
 };
 
 class FrequencyCounter_rt : public DSPModule_rt
@@ -30,9 +30,10 @@ class FrequencyCounter_rt : public DSPModule_rt
     unsigned long frame;
     unsigned long phase_decim;
 
+    std::unique_ptr<IMultiStageDecim> decim;
+
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<4>, 2> lowpass;
 
     moodycamel::ReaderWriterQueue<std::complex<float>> outputQueue;
 
@@ -54,7 +55,7 @@ class FrequencyCounterDSPAsync
 {
   public:
     const struct FrequencyCounterConfig &config;
-    FrequencyMeasurement freq_measurement;
+    WeirdSTFT freq_measurement;
     double real_sr = 0.0;
     FrequencyCounterDSPAsync(FrequencyCounterConfig &c);
 

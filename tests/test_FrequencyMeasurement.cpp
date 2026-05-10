@@ -3,10 +3,10 @@
 #include <catch2/matchers/catch_matchers_vector.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <FrequencyMeasurement.h>
+#include <WeirdSTFT.h>
 #if 1
-TEST_CASE("Frequency measurement", "[FrequencyMeasurement]") {
-    FrequencyMeasurement f;
+TEST_CASE("Frequency measurement", "[WeirdSTFT]") {
+    WeirdSTFT f;
     uint sr = 8;
     uint bs = 12;
     uint hop = 2;

@@ -36,7 +36,7 @@ struct Hilbert {
             output_r[i + 3] =  0.0f;           // *j
             output_i[i + 3] =  input[i + 3];
 
-            // Filtrage passe-bas à sr/4 (supprime les hautes fréquences)
+            // Filtrage passe-bas à sr/4
             float* c[] = {output_r + i, output_i + i};
             lowpass.process(4, c);
 

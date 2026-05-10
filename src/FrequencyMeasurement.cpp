@@ -1,5 +1,5 @@
 #include <kiss_fft.h>
-#include <FrequencyMeasurement.h>
+#include <WeirdSTFT.h>
 #include <LinearRegression.h>
 
 #ifndef NDEBUG
@@ -101,7 +101,7 @@ inline double getPeriodBin(int bin, int N){
 
 
 
-void FrequencyMeasurement::init(int block_size, int period, int size_history)
+void WeirdSTFT::init(int block_size, int period, int size_history)
 {
     if (fft_cfg)
     {
@@ -114,19 +114,19 @@ void FrequencyMeasurement::init(int block_size, int period, int size_history)
     this->period = period;
     this->size_history = size_history;
 }
-uint FrequencyMeasurement::getBlockSize() const {
+uint WeirdSTFT::getBlockSize() const {
     return circ.capacity();
 }
 
-void FrequencyMeasurement::reset(){
+void WeirdSTFT::reset(){
     circ.reset();
     history.resize(0);
     frame = 0;
 }
-int FrequencyMeasurement::history_size() const{
+int WeirdSTFT::history_size() const{
     return history.size();
 }
-void FrequencyMeasurement::addFFT()
+void WeirdSTFT::addFFT()
 {
     assert(frame % period == 0);
     assert(frame >= period);
@@ -184,11 +184,11 @@ void FrequencyMeasurement::addFFT()
     }
 }
 
-void FrequencyMeasurement::addSamples(const std::vector<std::complex<float>> & samples){
+void WeirdSTFT::addSamples(const std::vector<std::complex<float>> & samples){
     addSamples(samples.begin(),samples.end());
 }
 //todo : use complex phasor?
-void FrequencyMeasurement::getPhases(uint idx, std::vector<size_t> &time, std::vector<float> &phases)
+void WeirdSTFT::getPhases(uint idx, std::vector<size_t> &time, std::vector<float> &phases)
 {
     assert(circ.size() > idx);
     assert(history.size() > 0);
@@ -206,7 +206,7 @@ void FrequencyMeasurement::getPhases(uint idx, std::vector<size_t> &time, std::v
     }
 }
 
-std::vector<double> FrequencyMeasurement::getFrequencies(double sampleRate){
+std::vector<double> WeirdSTFT::getFrequencies(double sampleRate){
     assert(history.size() > 0);
     std::vector<double> frequencies(circ.size());
     const auto &v = history[0].second;
@@ -218,7 +218,7 @@ std::vector<double> FrequencyMeasurement::getFrequencies(double sampleRate){
     return frequencies;
 }
 
-std::vector<double> FrequencyMeasurement::FrequencyMeasurement::getMagnitude(){
+std::vector<double> WeirdSTFT::WeirdSTFT::getMagnitude(){
     assert(history.size() > 0);
     const auto &v = history[0].second;
     const size_t N = v.size();
@@ -230,7 +230,7 @@ std::vector<double> FrequencyMeasurement::FrequencyMeasurement::getMagnitude(){
     return magnitude;
 }
 
-std::vector<double> FrequencyMeasurement::FrequencyMeasurement::getSNR(){
+std::vector<double> WeirdSTFT::WeirdSTFT::getSNR(){
     auto m = getMagnitude();
     return ::getSNR(m);
 }

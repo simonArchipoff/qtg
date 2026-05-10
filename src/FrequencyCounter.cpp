@@ -9,7 +9,7 @@ FrequencyCounter_rt::FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c)
     auto decimation_factor = config.decimation_factor;
 
     auto fc = sample_rate / (2.0 * decimation_factor);
-    lowpass.setup(4,sample_rate,fc);
+    decim = createMultiStageDecim64(sample_rate);
 }
 
 void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
@@ -29,18 +29,13 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
         tmp_buff_q[i] = s * input_block_data[i];
     }
 
-    float *c[] = {tmp_buff_i.data(), tmp_buff_q.data()};
-    lowpass.process(input_size, c);
 
-    for (unsigned int i = 0; i < input_size; i++)
+    auto nb_out = decim->process(tmp_buff_i.data(), tmp_buff_q.data(), input_size);
+
+    for (unsigned int i = 0; i < nb_out; i++)
     {
-        float *tmp[] = {&tmp_buff_i[i], &tmp_buff_q[i]};
-        if (phase_decim % config.decimation_factor == 0)
-        {
-            auto out = std::complex<float>(tmp_buff_i[i], tmp_buff_q[i]);
-            outputQueue.enqueue(out);
-        }
-        phase_decim++; // todo optimize that
+        auto out = std::complex<float>(tmp_buff_i[i], tmp_buff_q[i]);
+        outputQueue.enqueue(out);
     }
 }
 
