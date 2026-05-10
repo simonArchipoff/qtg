@@ -7,12 +7,23 @@ FrequencyCounter_rt::FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c)
     assert(config.lo_freq * 2 <= config.sample_rate_nominal);
     auto sample_rate = config.sample_rate_nominal;
     decim = createMultiStageDecim64(sample_rate);
+    hilbert.init(sample_rate);
+    highPass_analytic.setup(6,sample_rate,1);
 }
 
 void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
 {
     auto input_block_data = input_block.data();
     auto input_size = input_block.size();
+
+
+    if(config.analytic_signal){
+        hilbert.process(input_size,input_block_data,tmp_buff_i.data(),tmp_buff_q.data());
+        for(size_t i = 0 ; i < input_size ; i++){
+            input_block_data[i] = sqrt(tmp_buff_i[i] * tmp_buff_i[i] + tmp_buff_q[i]* tmp_buff_q[i]);
+        }
+        highPass_analytic.process(input_size,&input_block_data);
+    }
 
     for (size_t i = 0; i < input_size; ++i)
     {
@@ -21,9 +32,9 @@ void FrequencyCounter_rt::rt_process(std::vector<float> &input_block)
         auto phase = -2 * M_PI * config.lo_freq * t;
         double c, s;
         sincos(phase, &s, &c);
-
-        tmp_buff_i[i] = c * input_block_data[i];
-        tmp_buff_q[i] = s * input_block_data[i];
+        float tmp =  input_block_data[i];
+        tmp_buff_i[i] = c * tmp;
+        tmp_buff_q[i] = s * tmp;
     }
 
 

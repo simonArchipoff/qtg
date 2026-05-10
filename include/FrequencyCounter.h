@@ -10,7 +10,7 @@
 #include <DSPModule_rt.h>
 #include "WeirdSTFT.h"
 #include "Decim.h"
-
+#include "Hilbert.h"
 struct FrequencyCounterConfig
 {
     int lo_freq = 0;
@@ -31,6 +31,10 @@ class FrequencyCounter_rt : public DSPModule_rt
     unsigned long phase_decim;
 
     std::unique_ptr<IMultiStageDecim> decim;
+
+    Hilbert hilbert;
+    Dsp::SimpleFilter<Dsp::Butterworth::HighPass<6>, 1> highPass_analytic;
+
 
     std::vector<float> tmp_buff_i;
     std::vector<float> tmp_buff_q;

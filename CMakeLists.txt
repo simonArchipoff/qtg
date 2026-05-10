@@ -92,6 +92,7 @@ add_executable(test
     tests/test_FrequencyMeasurement.cpp
     tests/test_FrequencyCounter.cpp
     tests/test_DSP_frequencyCounter.cpp
+    tests/test_hilbert_watch_signal.cpp
 )
 
 # Link with our library and Catch2
