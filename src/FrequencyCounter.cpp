@@ -1,4 +1,5 @@
 #include <FrequencyCounter.h>
+#include <algorithm>
 
 FrequencyCounter_rt::FrequencyCounter_rt(FrequencyCounterConfig &c) : config(c)
 {
@@ -51,16 +52,17 @@ bool FrequencyCounterDSPAsync::getResult(Result &r)
 {
     if (!freq_measurement.history_size())
         return false;
-    r.magnitudes = freq_measurement.getMagnitude();
+    r.magnitudes = freq_measurement.getMagnitude(config.harmonics);
     r.frequencies = freq_measurement.getFrequencies(this->real_sr);
     for (auto &f : r.frequencies)
     {
         f += config.lo_freq;
     }
-    auto snr = freq_measurement.getSNR();
+    auto snr = freq_measurement.getSNR(config.harmonics);
 
     r.frequencies_corrected_phasedrift = r.frequencies;
-    auto imax = std::distance(snr.begin(), std::max_element(snr.begin(), snr.end()));
+    auto max = std::max_element(snr.begin(), snr.end());
+    auto imax = std::distance(snr.begin(), max);
 
     if (freq_measurement.history_size() > 1)
     {

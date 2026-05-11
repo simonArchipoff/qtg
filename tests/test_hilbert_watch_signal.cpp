@@ -17,6 +17,7 @@ TEST_CASE("FrequencyCounter DSP w", "[Watch]") {
     c.lo_freq = 0;
     c.analytic_signal = true;
     c.duration_analysis_s = 4;
+    c.harmonics = 1;
     c.duration_between_analysis = 0.2;
     //c.decimation_factor = 48000/64;
 
@@ -25,11 +26,12 @@ TEST_CASE("FrequencyCounter DSP w", "[Watch]") {
     FrequencyCounterDSP dsp(c);
 
     const uint bs = 16;
-    int frequency = 4;
-    WatchSimSignal sig(sr, frequency);
-    sig.setDrift(0);
+    int base_frequency = 4;
+    WatchSimSignal sig(sr, base_frequency);
+    double ppm = 100;
+    sig.setDrift(ppm);
     std::vector<std::complex<float>> res;
-
+    double actual_frequency = static_cast<double>(base_frequency) * (1 + (ppm / 1e6));
     dsp.rt.init(bs);
 
     SECTION("Valeurs par défaut") {
@@ -51,7 +53,7 @@ TEST_CASE("FrequencyCounter DSP w", "[Watch]") {
         Result r;
         if(dsp.getResult(r)){
             auto f = r.strongest_frequency();
-            double diff = abs(f-frequency);
+            double diff = abs(f-actual_frequency);
             REQUIRE(diff < 0.0001);
         } else{
             REQUIRE(false);
