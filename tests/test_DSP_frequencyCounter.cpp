@@ -12,7 +12,7 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     FrequencyCounterConfig c;
     const uint sr = 48000;
     c.sample_rate_nominal = sr;
-    c.lo_freq = 3;
+    c.lo_freq = 4;
     c.duration_analysis_s = 4;
     c.duration_between_analysis = 0.2;
     //c.decimation_factor = 48000/64;
@@ -20,7 +20,7 @@ TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {
     FrequencyCounterDSP dsp(c);
 
     const uint bs = 16;
-    double frequency = 3.12345678;
+    double frequency = 6-3.12345678;
 
     std::vector<float> signal;
     signal.resize(35 * sr);

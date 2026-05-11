@@ -53,7 +53,7 @@ inline std::vector<double> getSNR(const std::vector<double> &magnitude, uint har
         for(uint j = 0; j <= harmonics; j++)
         {
             auto idx = i * (j+1);
-            if(idx < magnitude.size()/2)
+            if((idx < magnitude.size()/2)|| (harmonics == 0 && idx < magnitude.size())) // TODO : fix this, ugly and fragile (and duplicated)
             {
                 signalPower += magnitude[idx] * magnitude[idx];
             }
@@ -254,7 +254,7 @@ std::vector<double> WeirdSTFT::WeirdSTFT::getMagnitude(uint harmonics)
         for (uint j = 0; j <= harmonics; j++)
         {
             auto idx = i * (j+1);
-            if(idx < v.size()/2){
+            if((idx < v.size()/2) || (harmonics == 0 && idx < v.size())){ // TODO : fix this, ugly and fragile (and duplicated)
                 auto m = std::sqrt(v[idx].i * v[idx].i + v[idx].r * v[idx].r);
                 magnitude[i] = m;
             }

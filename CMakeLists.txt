@@ -55,7 +55,7 @@ set(QTG_SOURCES
     src/AudioSourceThread.cpp
     src/SoundCardDrift.cpp
     src/FrequencyCounter.cpp
-    src/FrequencyMeasurement.cpp
+    src/WeirdSTFT.cpp
 )
 
 
