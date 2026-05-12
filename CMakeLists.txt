@@ -15,12 +15,6 @@ add_compile_options(
     $<$<CONFIG:Profile>:-pg>
 )
 
-
-add_compile_options(
-    -mavx2
-)
-
-
 if (WIN32)
   add_compile_definitions(RPC_NO_WINDOWS_H WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
@@ -58,9 +52,6 @@ set(QTG_SOURCES
     src/WeirdSTFT.cpp
 )
 
-
-find_package(OpenGL REQUIRED)
-
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
@@ -90,7 +81,6 @@ find_package(Catch2 REQUIRED)
 add_executable(test
     tests/test_timeseriephase.cpp
     tests/test_FrequencyMeasurement.cpp
-    tests/test_FrequencyCounter.cpp
     tests/test_DSP_frequencyCounter.cpp
     tests/test_hilbert_watch_signal.cpp
 )
@@ -103,10 +93,10 @@ target_link_libraries(test
     npy::npy
 )
 
-if(0)
-add_executable(benchmarks benchmarks/benchmark_filter_bank.cpp src/QuartzDSP.cpp)
-target_include_directories(benchmarks PRIVATE include src)
-target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters     readerwriterqueue::readerwriterqueue     kissfft::kissfft-float)
+if(1)
+add_executable(benchmarks benchmarks/watch_dsp.cpp)
+target_include_directories(benchmarks PRIVATE include src )
+target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters libqtg readerwriterqueue::readerwriterqueue   kissfft::kissfft-float)
 #target_compile_options(benchmarks PRIVATE )
 target_link_options(benchmarks PRIVATE $<$<CONFIG:Profile>:-pg>)
 endif()
