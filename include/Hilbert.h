@@ -1,11 +1,12 @@
 #pragma once
 #include <Butterworth.h>
+#include <ChebyshevI.h>
 #include <cstddef>
 #include <cassert>
 
 struct Hilbert {
     unsigned int sr;
-    Dsp::SimpleFilter<Dsp::Butterworth::LowPass<12>, 2> lowpass;
+    Dsp::SimpleFilter<Dsp::ChebyshevI::LowPass<12>, 2> lowpass;
 
     Hilbert() : sr(0) {}
 
@@ -15,7 +16,7 @@ struct Hilbert {
 
     void init(unsigned int sampleRate) {
         sr = sampleRate;
-        lowpass.setup(12 /* order */, sr, sr / 4.0);
+        lowpass.setup(12 /* order */, sr, sr / 4.2, 3/*db ripple*/);
     }
 
     void process(std::size_t size, float* input, float* output_r, float* output_i) {

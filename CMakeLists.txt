@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 # Options communes pour tous les builds (à adapter)
 add_compile_options(
-    $<$<CONFIG:Release>:-O3>
+    $<$<CONFIG:Release>:-march=native>
     $<$<CONFIG:Release>:-fno-fast-math> #fastmath breaks it, dont know why, let's not use it
     -Wextra -Wreorder
     $<$<CONFIG:Profile>:-O2>
@@ -55,18 +55,18 @@ set(QTG_SOURCES
 add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
-add_library(libqtg ${QTG_SOURCES})
-target_include_directories(libqtg PUBLIC include)
-target_link_libraries(libqtg PUBLIC RtAudio::rtaudio
+add_library(qtg ${QTG_SOURCES})
+target_include_directories(qtg PUBLIC include)
+target_link_libraries(qtg PUBLIC RtAudio::rtaudio
     DSPFilters
     readerwriterqueue::readerwriterqueue
     kissfft::kissfft-float
   )
 
-add_executable(qtg src/main.cpp ${QTG_SOURCES} )
-target_include_directories(qtg PRIVATE ${QTG_INCLUDES} include)
-target_link_libraries(qtg PRIVATE
-    libqtg
+add_executable(qtg-app src/main.cpp ${QTG_SOURCES} )
+target_include_directories(qtg-app PRIVATE ${QTG_INCLUDES} include)
+target_link_libraries(qtg-app PRIVATE
+    qtg
     CLI11::CLI11
 )
 
@@ -89,14 +89,14 @@ add_executable(test
 target_link_libraries(test 
     PRIVATE 
     Catch2::Catch2WithMain
-    libqtg
+    qtg
     npy::npy
 )
 
 if(1)
 add_executable(benchmarks benchmarks/watch_dsp.cpp)
 target_include_directories(benchmarks PRIVATE include src )
-target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters libqtg readerwriterqueue::readerwriterqueue   kissfft::kissfft-float)
+target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters qtg readerwriterqueue::readerwriterqueue   kissfft::kissfft-float)
 #target_compile_options(benchmarks PRIVATE )
 target_link_options(benchmarks PRIVATE $<$<CONFIG:Profile>:-pg>)
 endif()

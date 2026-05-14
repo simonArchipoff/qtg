@@ -28,8 +28,7 @@ int main(int argc, char *argv[])
 
     app.add_option("-s,--sample-rate", c.sample_rate_nominal, "Requested sampleRate");
 
-    app.add_option(
-        "--decimation", c.decimation_factor, "Decimation factor (this can be very high)");
+    //app.add_option("--decimation", c.decimation_factor, "Decimation factor (this can be very high)");
     app.add_option("--local-oscillator", c.lo_freq,
         "Local oscillator frequency (by default the same as frequency)");
     //app.add_option("--bw-bandpass",c.bw_bandpass,"Width arround the frequency to select");

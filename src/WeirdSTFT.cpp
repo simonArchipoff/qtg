@@ -93,7 +93,7 @@ struct PhaseDriftResult getPhaseDriftResult(
     return r;
 }
 
-inline double getFrequencyNormBin(int bin, int N)
+double getFrequencyNormBin(int bin, int N)
 {
     const double Nd = static_cast<double>(N);
     if (bin < N / 2)

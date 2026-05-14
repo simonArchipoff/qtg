@@ -129,7 +129,7 @@ def main():
         description="Generate a Faust envelope detector using analytic signal."
     )
     parser.add_argument(
-        "--sample-rate", type=float, default=44100.0,
+        "--sample-rate", type=int, default=44100,
         help="Sampling frequency in Hz (default: 44100)"
     )
     parser.add_argument(
@@ -167,6 +167,9 @@ def main():
         b_re, b_im = design_filters(
             args.sample_rate, args.lowcut, args.highcut, args.fir_size,args.fir_thres
         )
+        suffix=f"{args.sample_rate}_{args.fir_size}"
+        print(f"static const float coefs_re_{suffix}[] = {format_C_list(b_re)};")
+        print(f"static const float coefs_im_{suffix}[] = {format_C_list(b_im)};")
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -178,7 +181,8 @@ def main():
             f.write(faust_code)
         print(f"Faust code written to {args.output}")
     else:
-        print(faust_code)
+        pass
+        #print(faust_code)
 
     if args.plot:
         freqs, magnitude = compute_analytic_spectrum(
