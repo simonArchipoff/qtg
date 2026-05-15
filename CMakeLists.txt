@@ -87,6 +87,6 @@ if(QTG_ENABLE_DEV AND Catch2_FOUND)
 endif()
 
 # Benchmarks
-if(QTG_ENABLE_DEV AND Catch2_FOUND)
+if(QTG_ENABLE_DEV)
     add_subdirectory(benchmarks)
 endif()
