@@ -3,8 +3,10 @@
 #include <LinearRegression.h>
 
 #ifndef NDEBUG
+#ifdef QTG_WITH_NPY
 //#include <npy/tensor.h>
 #include <npy/npy.h>
+#endif
 #endif
 
 template <typename T>

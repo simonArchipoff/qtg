@@ -6,7 +6,9 @@
 
 #include <FrequencyCounter.h>
 
+#ifdef QTG_WITH_NPY
 #include <npy/npy.h>
+#endif
 
 
 

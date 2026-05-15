@@ -21,9 +21,6 @@
       "platform": "windows"
     },
     {
-      "name":"matajoh-libnpy"
-    },
-    {
       "name":"catch2"
     }
   ]

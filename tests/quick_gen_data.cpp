@@ -1,6 +1,8 @@
 
+#ifdef QTG_WITH_NPY
 #include <npy/tensor.h>
 #include <npy/npy.h>
+#endif
 #include "FilterBank.h"
 
 int f(){

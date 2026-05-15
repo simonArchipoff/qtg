@@ -5,7 +5,9 @@
 
 #include <FrequencyCounter.h>
 
+#ifdef QTG_WITH_NPY
 #include <npy/npy.h>
+#endif
 
 #if 1
 TEST_CASE("FrequencyCounter DSP", "[FrequencyCounter]") {

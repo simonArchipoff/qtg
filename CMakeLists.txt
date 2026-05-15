@@ -3,22 +3,32 @@ project(qtg LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
-#set(CMAKE_BUILD_TYPE Profile CACHE STRING "Profiling build" FORCE)
+# ============================================================
+# Options
+# ============================================================
+option(QTG_ENABLE_DEV "Enable development tools (tests, benchmarks, npy)" OFF)
 
-# Options communes pour tous les builds (à adapter)
+# ============================================================
+# Compile options (globales)
+# ============================================================
 add_compile_options(
     $<$<CONFIG:Release>:-march=native>
-    $<$<CONFIG:Release>:-fno-fast-math> #fastmath breaks it, dont know why, let's not use it
+    $<$<CONFIG:Release>:-fno-fast-math>
     -Wextra -Wreorder
     $<$<CONFIG:Profile>:-O2>
     $<$<CONFIG:Profile>:-g>
     $<$<CONFIG:Profile>:-pg>
 )
 
-if (WIN32)
-  add_compile_definitions(RPC_NO_WINDOWS_H WIN32_LEAN_AND_MEAN NOMINMAX)
+if(WIN32)
+    add_compile_definitions(RPC_NO_WINDOWS_H WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
+add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
+
+# ============================================================
+# DSPFilters — FetchContent (dépendance externe)
+# ============================================================
 include(FetchContent)
 FetchContent_Declare(
     DSPFilters
@@ -31,72 +41,52 @@ file(GLOB_RECURSE DSPFILTERS_HEADER_FILES
 file(GLOB_RECURSE DSPFILTERS_SOURCE_FILES
     "${dspfilters_SOURCE_DIR}/src/*.cpp")
 
-
 add_library(DSPFilters STATIC
     ${DSPFILTERS_SOURCE_FILES}
     ${DSPFILTERS_HEADER_FILES}
 )
-target_include_directories(DSPFilters PUBLIC ${dspfilters_SOURCE_DIR}/DSPFilters/include ${dspfilters_SOURCE_DIR}/include)
+target_include_directories(DSPFilters PUBLIC
+    ${dspfilters_SOURCE_DIR}/DSPFilters/include
+    ${dspfilters_SOURCE_DIR}/include
+)
 
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-
+# ============================================================
+# Dépendances vcpkg
+# ============================================================
 find_package(readerwriterqueue CONFIG REQUIRED)
 find_package(kissfft CONFIG REQUIRED)
-find_package(npy REQUIRED)
+if(QTG_ENABLE_DEV)
+    find_package(npy REQUIRED)
+endif()
 find_package(CLI11 REQUIRED)
-
-set(QTG_SOURCES
-    src/AudioSourceThread.cpp
-    src/SoundCardDrift.cpp
-    src/FrequencyCounter.cpp
-    src/WeirdSTFT.cpp
-)
-
-add_compile_options(-D_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
 find_package(RtAudio REQUIRED)
 
-add_library(qtg ${QTG_SOURCES})
-target_include_directories(qtg PUBLIC include)
-target_link_libraries(qtg PUBLIC RtAudio::rtaudio
-    DSPFilters
-    readerwriterqueue::readerwriterqueue
-    kissfft::kissfft-float
-  )
+# Catch2 — optionnel (tests/benchmarks)
+if(QTG_ENABLE_DEV)
+    find_package(Catch2 REQUIRED)
+endif()
 
-add_executable(qtg-app src/main.cpp ${QTG_SOURCES} )
-target_include_directories(qtg-app PRIVATE ${QTG_INCLUDES} include)
-target_link_libraries(qtg-app PRIVATE
-    qtg
-    CLI11::CLI11
-)
+# ============================================================
+# Tests (CTest)
+# ============================================================
+include(CTest)
+enable_testing()
 
-find_package(npy CONFIG REQUIRED)
+# ============================================================
+# Sous-projets
+# ============================================================
+add_subdirectory(src)
 
-add_executable(quick_gen_data tests/test_discrete_bank.cpp )
-target_include_directories(quick_gen_data PRIVATE include)
-target_link_libraries(quick_gen_data PRIVATE npy::npy)
+# Tests
+if(QTG_ENABLE_DEV AND Catch2_FOUND)
+    add_subdirectory(tests)
+    add_test(NAME qtg_tests COMMAND qtg_tests)
+    set_tests_properties(qtg_tests PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endif()
 
-
-find_package(Catch2 REQUIRED)
-add_executable(test
-    tests/test_timeseriephase.cpp
-    tests/test_FrequencyMeasurement.cpp
-    tests/test_DSP_frequencyCounter.cpp
-    tests/test_hilbert_watch_signal.cpp
-)
-
-# Link with our library and Catch2
-target_link_libraries(test 
-    PRIVATE 
-    Catch2::Catch2WithMain
-    qtg
-    npy::npy
-)
-
-if(1)
-add_executable(benchmarks benchmarks/watch_dsp.cpp)
-target_include_directories(benchmarks PRIVATE include src )
-target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain DSPFilters qtg readerwriterqueue::readerwriterqueue   kissfft::kissfft-float)
-#target_compile_options(benchmarks PRIVATE )
-target_link_options(benchmarks PRIVATE $<$<CONFIG:Profile>:-pg>)
+# Benchmarks
+if(QTG_ENABLE_DEV AND Catch2_FOUND)
+    add_subdirectory(benchmarks)
 endif()
